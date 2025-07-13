@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Link, 
   Loader2, 
@@ -36,6 +39,8 @@ interface PropertyData {
 }
 
 export default function PropertyProcessor() {
+  const { profile, refreshProfile } = useAuth();
+  const { toast } = useToast();
   const [url, setUrl] = useState("");
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -49,6 +54,15 @@ export default function PropertyProcessor() {
 
   const handleProcess = async () => {
     if (!url.trim()) return;
+    
+    if (!profile || profile.usage_count >= profile.monthly_limit) {
+      toast({
+        title: "Límite alcanzado",
+        description: `Has alcanzado el límite de ${profile?.monthly_limit || 5} propiedades de tu plan.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setProcessing(true);
     setProgress(0);
@@ -85,7 +99,7 @@ export default function PropertyProcessor() {
       }
     });
 
-    setGeneratedContent({
+    const generatedContent = {
       socialText: "🏡 ¡NUEVA PROPIEDAD DISPONIBLE! Esta espectacular casa moderna te espera con vistas panorámicas increíbles. 3 habitaciones, 2.5 baños y acabados de primera calidad. ¡No dejes pasar esta oportunidad única!",
       hashtags: ["#CasaEnVenta", "#Austin", "#KellerWilliams", "#BienesRaices", "#PropiedadDeLujo", "#VistaPanoramica"],
       images: [
@@ -93,7 +107,49 @@ export default function PropertyProcessor() {
         "/api/placeholder/400/400"
       ],
       videoUrl: "/api/placeholder/video"
-    });
+    };
+
+    // Save to database
+    try {
+      const newProperty = {
+        user_id: profile.user_id,
+        url,
+        title: propertyData?.title || "Propiedad sin título",
+        description: propertyData?.description,
+        price: propertyData?.price,
+        address: propertyData?.address,
+        agent_name: propertyData?.agent?.name,
+        agent_phone: propertyData?.agent?.phone,
+        images: propertyData?.images || [],
+        social_content: generatedContent.socialText,
+        hashtags: generatedContent.hashtags,
+        status: "processed"
+      };
+
+      await supabase.from('properties').insert([newProperty]);
+      
+      // Update user usage count
+      await supabase
+        .from('profiles')
+        .update({ usage_count: profile.usage_count + 1 })
+        .eq('user_id', profile.user_id);
+      
+      await refreshProfile();
+
+      setGeneratedContent(generatedContent);
+
+      toast({
+        title: "¡Propiedad procesada!",
+        description: "El contenido ha sido generado exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error saving property:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un problema al procesar la propiedad.",
+        variant: "destructive",
+      });
+    }
 
     setProcessing(false);
   };

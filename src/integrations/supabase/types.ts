@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          monthly_limit: number | null
+          plan: string | null
+          updated_at: string
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          monthly_limit?: number | null
+          plan?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          monthly_limit?: number | null
+          plan?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string | null
+          agent_name: string | null
+          agent_phone: string | null
+          created_at: string
+          description: string | null
+          hashtags: string[] | null
+          id: string
+          images: string[] | null
+          price: string | null
+          social_content: string | null
+          status: string | null
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          address?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          created_at?: string
+          description?: string | null
+          hashtags?: string[] | null
+          id?: string
+          images?: string[] | null
+          price?: string | null
+          social_content?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          address?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          created_at?: string
+          description?: string | null
+          hashtags?: string[] | null
+          id?: string
+          images?: string[] | null
+          price?: string | null
+          social_content?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

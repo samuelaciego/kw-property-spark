@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { 
   Plus, 
   Search, 
@@ -56,10 +59,29 @@ const recentProperties = [
 ];
 
 export default function Dashboard() {
+  const { profile, refreshProfile } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [properties, setProperties] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      const { data } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      setProperties(data || []);
+    } catch (error) {
+      console.error('Error loading properties:', error);
+    }
+  };
   
-  const currentMonth = 42; // propiedades procesadas este mes
-  const monthlyLimit = 200; // límite del plan
+  const currentMonth = profile?.usage_count || 0;
+  const monthlyLimit = profile?.monthly_limit || 5;
   const usagePercentage = (currentMonth / monthlyLimit) * 100;
 
   return (
@@ -72,9 +94,11 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
               <p className="text-muted-foreground">Gestiona tus propiedades y contenido</p>
             </div>
-            <Button className="bg-gradient-hero hover:shadow-glow transition-all duration-300">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Propiedad
+            <Button className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
+              <Link to="/process">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Propiedad
+              </Link>
             </Button>
           </div>
         </div>
@@ -175,19 +199,30 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentProperties.map((property) => (
+              {properties.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No hay propiedades procesadas aún.</p>
+                  <Button className="mt-4" asChild>
+                    <Link to="/process">Procesar Primera Propiedad</Link>
+                  </Button>
+                </div>
+              ) : (
+                properties.filter(p => 
+                  p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  p.address?.toLowerCase().includes(searchTerm.toLowerCase())
+                ).slice(0, 10).map((property) => (
                 <div
                   key={property.id}
                   className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-muted/20 transition-colors"
                 >
                   <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{property.title}</h3>
-                    <p className="text-sm text-muted-foreground">{property.address}</p>
+                    <h3 className="font-semibold text-foreground">{property.title || 'Sin título'}</h3>
+                    <p className="text-sm text-muted-foreground">{property.address || 'Sin dirección'}</p>
                     <div className="flex items-center space-x-4 mt-2">
-                      <span className="text-sm font-medium text-primary">{property.price}</span>
+                      <span className="text-sm font-medium text-primary">{property.price || 'Precio no disponible'}</span>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {property.date}
+                        {new Date(property.created_at).toLocaleDateString()}
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Eye className="h-3 w-3 mr-1" />
@@ -200,21 +235,19 @@ export default function Dashboard() {
                     <div className="text-center">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Image className="h-3 w-3 mr-1" />
-                        {property.images}
+                        {property.images?.length || 0}
                       </div>
-                      {property.hasVideo && (
-                        <div className="flex items-center text-sm text-accent mt-1">
-                          <Video className="h-3 w-3 mr-1" />
-                          Video
-                        </div>
-                      )}
+                      <div className="flex items-center text-sm text-accent mt-1">
+                        <Video className="h-3 w-3 mr-1" />
+                        Video
+                      </div>
                     </div>
 
                     <Badge 
-                      variant={property.status === 'Procesado' ? 'default' : 'secondary'}
-                      className={property.status === 'Procesado' ? 'bg-accent' : ''}
+                      variant={property.status === 'processed' ? 'default' : 'secondary'}
+                      className={property.status === 'processed' ? 'bg-accent' : ''}
                     >
-                      {property.status}
+                      {property.status === 'processed' ? 'Procesado' : property.status}
                     </Badge>
 
                     <div className="flex space-x-2">
@@ -230,7 +263,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

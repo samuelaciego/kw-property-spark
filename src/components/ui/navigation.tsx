@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Building2, LogIn, UserPlus, LayoutDashboard, Zap } from "lucide-react";
+import { Building2, LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Navigation() {
   const location = useLocation();
+  const { user, profile, signOut } = useAuth();
   const isLandingPage = location.pathname === "/";
 
   return (
@@ -62,23 +64,29 @@ export function Navigation() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            {isLandingPage ? (
+            {!user ? (
               <>
-                <Button variant="ghost" size="sm" className="hidden sm:flex">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Iniciar Sesión
+                <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+                  <Link to="/auth">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Iniciar Sesión
+                  </Link>
                 </Button>
-                <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Registrarse
+                <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
+                  <Link to="/auth">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Registrarse
+                  </Link>
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm">
-                  María G.
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  {profile?.full_name || user.email?.split('@')[0]}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
                   Cerrar Sesión
                 </Button>
               </>
