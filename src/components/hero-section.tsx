@@ -1,8 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/auth-context";
 import heroImage from "@/assets/hero-bg.jpg";
 
 export function HeroSection() {
+  const { user } = useAuth();
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -58,17 +62,23 @@ export function HeroSection() {
             <Button 
               size="lg" 
               className="bg-gradient-hero hover:shadow-glow transition-all duration-300 text-lg px-8 py-6"
+              asChild
             >
-              Comenzar Prueba Gratuita
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <Link to={user ? "/dashboard" : "/auth"}>
+                {user ? "Ir al Dashboard" : "Comenzar Prueba Gratuita"}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
             <Button 
               variant="outline" 
               size="lg"
               className="text-lg px-8 py-6 hover:bg-muted/50 transition-all duration-300"
+              asChild
             >
-              <Play className="mr-2 h-5 w-5" />
-              Ver Demo
+              <Link to={user ? "/process" : "/auth"}>
+                <Play className="mr-2 h-5 w-5" />
+                {user ? "Procesar Propiedades" : "Ver Demo"}
+              </Link>
             </Button>
           </div>
 
