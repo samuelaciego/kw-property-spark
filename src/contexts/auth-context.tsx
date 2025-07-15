@@ -9,6 +9,7 @@ interface Profile {
   email: string;
   full_name?: string;
   company?: string;
+  avatar_url?: string;
   plan: string;
   usage_count: number;
   monthly_limit: number;

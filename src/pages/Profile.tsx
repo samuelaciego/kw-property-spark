@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 import { 
   User, 
   Building, 
@@ -17,16 +19,21 @@ import {
   Save,
   Loader2,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  Upload,
+  Camera
 } from "lucide-react";
 
 export default function Profile() {
   const { profile, user, refreshProfile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     company: "",
+    avatar_url: "",
   });
 
   useEffect(() => {
@@ -34,6 +41,7 @@ export default function Profile() {
       setFormData({
         full_name: profile.full_name || "",
         company: profile.company || "",
+        avatar_url: profile.avatar_url || "",
       });
     }
   }, [profile]);
@@ -49,6 +57,7 @@ export default function Profile() {
         .update({
           full_name: formData.full_name,
           company: formData.company,
+          avatar_url: formData.avatar_url,
         })
         .eq('user_id', profile.user_id);
 
@@ -68,6 +77,43 @@ export default function Profile() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('agency-logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('agency-logos')
+        .getPublicUrl(fileName);
+
+      setFormData({ ...formData, avatar_url: data.publicUrl });
+
+      toast({
+        title: "Logo subido",
+        description: "El logo de tu agencia ha sido subido exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el logo. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -158,13 +204,57 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company">Empresa</Label>
+                  <Label htmlFor="company">Agencia</Label>
                   <Input
                     id="company"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    placeholder="Nombre de tu empresa"
+                    placeholder="Nombre de tu agencia"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Logo de la Agencia</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={formData.avatar_url} alt="Logo de la agencia" />
+                      <AvatarFallback>
+                        <Building className="h-8 w-8" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="w-fit"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Subiendo...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Subir Logo
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Formato recomendado: PNG o JPG, máximo 2MB
+                      </p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </div>
                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full">
@@ -229,9 +319,11 @@ export default function Profile() {
                           <p className="text-xs text-muted-foreground mb-3">
                             Obtén acceso ilimitado a todas las funciones
                           </p>
-                          <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all">
-                            <CreditCard className="h-4 w-4 mr-2" />
-                            Ver Planes
+                          <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all" asChild>
+                            <Link to="/plans">
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Ver Planes
+                            </Link>
                           </Button>
                         </div>
                       </div>
