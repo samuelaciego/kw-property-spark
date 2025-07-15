@@ -81,9 +81,11 @@ export function Navigation() {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  {profile?.full_name || user.email?.split('@')[0]}
+                <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4" />
+                    {profile?.full_name || user.email?.split('@')[0]}
+                  </Link>
                 </Button>
                 <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
                   <LogOut className="h-4 w-4" />
