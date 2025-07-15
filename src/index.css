@@ -18,10 +18,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 18%;
 
-    /* Primary - Professional Real Estate Blue */
-    --primary: 217 91% 60%;
+    /* Primary - Brand Red */
+    --primary: 351 99% 41%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 217 91% 70%;
+    --primary-glow: 351 99% 51%;
 
     /* Secondary - Warm Gray */
     --secondary: 220 14% 96%;
@@ -46,17 +46,17 @@
     /* Border and input */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --ring: 351 99% 41%;
 
     /* Real Estate specific gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(351 99% 41%), hsl(351 99% 51%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 98%));
     --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 46%));
     
     /* Professional shadows */
-    --shadow-elegant: 0 10px 25px -5px hsl(217 91% 60% / 0.1), 0 4px 6px -2px hsl(217 91% 60% / 0.05);
+    --shadow-elegant: 0 10px 25px -5px hsl(351 99% 41% / 0.1), 0 4px 6px -2px hsl(351 99% 41% / 0.05);
     --shadow-card: 0 4px 6px -1px hsl(220 13% 18% / 0.1), 0 2px 4px -1px hsl(220 13% 18% / 0.06);
-    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 20px hsl(351 99% 41% / 0.3);
 
     /* Animation variables */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -78,7 +78,7 @@
 
     --sidebar-border: 220 13% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 351 99% 41%;
   }
 
   .dark {
@@ -116,7 +116,7 @@
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 351 99% 41%;
   }
 }
 
