@@ -3,11 +3,14 @@ import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
+import { VideoLightbox } from "@/components/ui/video-lightbox";
+import { useState } from "react";
 import heroImage from "@/assets/hero-bg.jpg";
 
 export function HeroSection() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -75,12 +78,10 @@ export function HeroSection() {
               variant="outline" 
               size="lg"
               className="text-lg px-8 py-6 hover:bg-muted/50 transition-all duration-300"
-              asChild
+              onClick={() => setIsVideoOpen(true)}
             >
-              <Link to={user ? "/process" : "/auth"}>
-                <Play className="mr-2 h-5 w-5" />
-                {user ? t.processProperties : t.seeDemo}
-              </Link>
+              <Play className="mr-2 h-5 w-5" />
+              {t.seeDemo}
             </Button>
           </div>
 
@@ -100,6 +101,14 @@ export function HeroSection() {
       {/* Floating Elements */}
       <div className="absolute top-1/4 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
       <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+      
+      {/* Video Lightbox */}
+      <VideoLightbox 
+        isOpen={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        videoId="dQw4w9WgXcQ"
+        title="PropGen Demo"
+      />
     </section>
   );
 }
