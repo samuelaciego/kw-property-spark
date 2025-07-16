@@ -20,7 +20,6 @@ import {
   Home,
   Image,
   Video,
-  Share2,
   TrendingUp,
   Loader2
 } from "lucide-react";
@@ -305,10 +304,11 @@ export default function Dashboard() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => window.open(`/property/${property.id}`, '_blank')}
-                            title="Ver propiedad"
+                            asChild
                           >
-                            <Eye className="h-4 w-4" />
+                            <Link to={`/property/${property.id}`} title="Ver propiedad">
+                              <Eye className="h-4 w-4" />
+                            </Link>
                           </Button>
                           <Button 
                             size="sm" 
@@ -337,20 +337,6 @@ Imágenes: ${property.images?.length || 0}
                             title="Descargar información"
                           >
                             <Download className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              const shareUrl = `${window.location.origin}/property/${property.id}`;
-                              navigator.clipboard.writeText(shareUrl).then(() => {
-                                // Podrías agregar un toast aquí
-                                console.log('Link copiado al portapapeles');
-                              });
-                            }}
-                            title="Compartir propiedad"
-                          >
-                            <Share2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
