@@ -13,14 +13,11 @@ import {
   Plus, 
   Search, 
   Filter, 
-  Download, 
-  Eye, 
   Calendar,
   BarChart3,
   Home,
   Image,
   Video,
-  Share2,
   TrendingUp,
   Loader2
 } from "lucide-react";
@@ -33,7 +30,6 @@ interface Property {
   status: string | null;
   created_at: string;
   images: string[] | null;
-  views: number | null;
 }
 
 export default function Dashboard() {
@@ -60,7 +56,7 @@ export default function Dashboard() {
       
       const { data, error: fetchError } = await supabase
         .from('properties')
-        .select('id, title, address, price, status, created_at, images, views')
+        .select('id, title, address, price, status, created_at, images')
         .order('created_at', { ascending: false });
       
       if (fetchError) {
@@ -178,16 +174,16 @@ export default function Dashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Vistas</p>
+                    <p className="text-sm text-muted-foreground">Imágenes</p>
                     <p className="text-2xl font-bold text-foreground">
-                      {properties.reduce((sum, p) => sum + (p.views || 0), 0)}
+                      {properties.reduce((sum, p) => sum + (p.images?.length || 0), 0)}
                     </p>
                   </div>
                   <div className="bg-warning/10 p-3 rounded-lg">
                     <Video className="h-6 w-6 text-warning" />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">Total acumuladas</p>
+                <p className="text-xs text-muted-foreground mt-2">Total procesadas</p>
               </CardContent>
             </Card>
 
@@ -279,10 +275,6 @@ export default function Dashboard() {
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(property.created_at).toLocaleDateString()}
                           </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Eye className="h-3 w-3 mr-1" />
-                            {property.views || 0} vistas
-                          </div>
                         </div>
                       </div>
 
@@ -300,18 +292,6 @@ export default function Dashboard() {
                         >
                           {property.status === 'processed' ? 'Procesado' : property.status || 'Pendiente'}
                         </Badge>
-
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                        </div>
                       </div>
                     </div>
                   ))}
