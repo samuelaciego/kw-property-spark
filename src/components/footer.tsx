@@ -1,6 +1,8 @@
 import { Building2, Mail, Phone, MapPin } from "lucide-react";
+import { useLanguage } from "@/contexts/language-context";
 
 export function Footer() {
+  const { t } = useLanguage();
   return (
     <footer className="bg-foreground text-background py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,8 +16,7 @@ export function Footer() {
               <span className="text-2xl font-bold">PropGen</span>
             </div>
             <p className="text-background/80 mb-6 max-w-md">
-              La herramienta definitiva para agentes inmobiliarios de Keller Williams que buscan automatizar 
-              y optimizar su marketing digital de propiedades.
+              {t.footerDescription}
             </p>
             <div className="flex items-center space-x-4 text-sm text-background/60">
               <span>© 2024 PropGen</span>
@@ -26,11 +27,11 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-4">Enlaces Rápidos</h3>
+            <h3 className="font-semibold mb-4">{t.quickLinks}</h3>
             <ul className="space-y-2 text-background/80">
               <li>
                 <a href="#features" className="hover:text-white transition-colors">
-                  Características
+                  {t.features}
                 </a>
               </li>
               <li>
@@ -58,7 +59,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-semibold mb-4">Contacto</h3>
+            <h3 className="font-semibold mb-4">{t.contact}</h3>
             <ul className="space-y-3 text-background/80">
               <li className="flex items-center">
                 <Mail className="h-4 w-4 mr-2" />

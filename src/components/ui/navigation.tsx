@@ -27,13 +27,13 @@ export function Navigation() {
             {isLandingPage ? (
               <>
                 <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Características
+                  {t.features}
                 </a>
                 <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Precios
+                  {t.pricing}
                 </a>
                 <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Nosotros
+                  {t.about}
                 </a>
               </>
             ) : (
@@ -66,33 +66,33 @@ export function Navigation() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            {!user ? (
+            {user ? (
               <>
-                 <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
-                   <Link to="/auth">
-                     <LogIn className="h-4 w-4 mr-2" />
-                     Iniciar Sesión
-                   </Link>
-                 </Button>
-                 <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
-                   <Link to="/auth">
-                     <UserPlus className="h-4 w-4 mr-2" />
-                     Registrarse
-                   </Link>
-                 </Button>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4" />
+                    {profile?.full_name || user.email?.split('@')[0]}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  {t.logout}
+                </Button>
               </>
             ) : (
               <>
-                 <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
-                   <Link to="/profile">
-                     <User className="h-4 w-4" />
-                     {profile?.full_name || user.email?.split('@')[0]}
-                   </Link>
-                 </Button>
-                 <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
-                   <LogOut className="h-4 w-4" />
-                   {t.logout}
-                 </Button>
+                <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+                  <Link to="/auth">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    {t.login}
+                  </Link>
+                </Button>
+                <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
+                  <Link to="/auth">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    {t.signUp}
+                  </Link>
+                </Button>
               </>
             )}
           </div>

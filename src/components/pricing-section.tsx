@@ -2,66 +2,69 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, Zap, Crown } from "lucide-react";
-
-const plans = [
-  {
-    name: "Básico",
-    price: "$29",
-    period: "/mes",
-    description: "Perfecto para agentes que están comenzando",
-    icon: Zap,
-    features: [
-      "50 propiedades por mes",
-      "Imágenes para redes sociales",
-      "Textos básicos con hashtags",
-      "Soporte por email",
-      "Historial de 30 días"
-    ],
-    buttonText: "Comenzar Básico",
-    buttonVariant: "outline" as const,
-    popular: false
-  },
-  {
-    name: "Profesional",
-    price: "$79",
-    period: "/mes",
-    description: "La opción más popular para agentes activos",
-    icon: Star,
-    features: [
-      "200 propiedades por mes",
-      "Imágenes + Videos automáticos",
-      "Contenido optimizado con IA",
-      "Branding personalizado",
-      "Soporte prioritario",
-      "Historial ilimitado",
-      "Analytics avanzados"
-    ],
-    buttonText: "Comenzar Profesional",
-    buttonVariant: "default" as const,
-    popular: true
-  },
-  {
-    name: "Empresarial",
-    price: "$199",
-    period: "/mes",
-    description: "Para equipos y oficinas completas",
-    icon: Crown,
-    features: [
-      "Propiedades ilimitadas",
-      "Todo del plan Profesional",
-      "Múltiples usuarios",
-      "Plantillas personalizadas",
-      "API para integraciones",
-      "Gerente de cuenta dedicado",
-      "Capacitación personalizada"
-    ],
-    buttonText: "Contactar Ventas",
-    buttonVariant: "outline" as const,
-    popular: false
-  }
-];
+import { useLanguage } from "@/contexts/language-context";
 
 export function PricingSection() {
+  const { t } = useLanguage();
+  
+  const plans = [
+    {
+      name: t.basic,
+      price: "$29",
+      period: t.perMonth,
+      description: t.basicDesc,
+      icon: Zap,
+      features: [
+        "50 propiedades por mes",
+        "Imágenes para redes sociales",
+        "Textos básicos con hashtags",
+        "Soporte por email",
+        "Historial de 30 días"
+      ],
+      buttonText: t.startBasic,
+      buttonVariant: "outline" as const,
+      popular: false
+    },
+    {
+      name: t.professional,
+      price: "$79",
+      period: t.perMonth,
+      description: t.professionalDesc,
+      icon: Star,
+      features: [
+        "200 propiedades por mes",
+        "Imágenes + Videos automáticos",
+        "Contenido optimizado con IA",
+        "Branding personalizado",
+        "Soporte prioritario",
+        "Historial ilimitado",
+        "Analytics avanzados"
+      ],
+      buttonText: t.startProfessional,
+      buttonVariant: "default" as const,
+      popular: true
+    },
+    {
+      name: t.enterprise,
+      price: "$199",
+      period: t.perMonth,
+      description: t.enterpriseDesc,
+      icon: Crown,
+      features: [
+        "Propiedades ilimitadas",
+        "Todo del plan Profesional",
+        "Múltiples usuarios",
+        "Plantillas personalizadas",
+        "API para integraciones",
+        "Gerente de cuenta dedicado",
+        "Capacitación personalizada"
+      ],
+      buttonText: t.contactSales,
+      buttonVariant: "outline" as const,
+      popular: false
+    }
+  ];
+  
   return (
     <section id="pricing" className="py-20 bg-gradient-to-b from-muted/20 to-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,16 +72,16 @@ export function PricingSection() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full mb-6">
             <Star className="h-4 w-4 text-primary mr-2" />
-            <span className="text-sm font-medium text-primary">Planes y Precios</span>
+            <span className="text-sm font-medium text-primary">{t.plansAndPricing}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            Elige el plan perfecto para{" "}
+            {t.choosePerfectPlan}{" "}
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              tu negocio
+              {t.forYourBusiness}
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Todos los planes incluyen prueba gratuita de 14 días. Sin compromisos, cancela cuando quieras.
+            {t.pricingDescription}
           </p>
         </div>
 
@@ -95,7 +98,7 @@ export function PricingSection() {
             >
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-hero text-white px-4 py-1">
-                  Más Popular
+                  {t.mostPopular}
                 </Badge>
               )}
               
@@ -146,7 +149,7 @@ export function PricingSection() {
         {/* FAQ Section */}
         <div className="bg-gradient-card rounded-2xl p-8 border border-border/50 shadow-card max-w-4xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-foreground mb-8">
-            Preguntas Frecuentes
+            {t.frequentQuestions}
           </h3>
           <div className="grid md:grid-cols-2 gap-8">
             <div>

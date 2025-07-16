@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useLanguage } from "@/contexts/language-context";
 import heroImage from "@/assets/hero-bg.jpg";
 
 export function HeroSection() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -25,35 +27,35 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full mb-8 animate-fade-in">
             <Sparkles className="h-4 w-4 text-primary mr-2" />
-            <span className="text-sm font-medium text-primary">Exclusivo para Agentes de Keller Williams</span>
+            <span className="text-sm font-medium text-primary">{t.exclusiveForKW}</span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 animate-slide-up">
-            Automatiza el Marketing de{" "}
+            {t.automatePropertyMarketing}{" "}
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              tus Propiedades
+              {t.yourProperties}
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            Extrae datos de propiedades automáticamente y genera contenido profesional para redes sociales en segundos.
+            {t.heroSubtitle}
           </p>
 
           {/* Features List */}
           <div className="flex flex-wrap justify-center gap-6 mb-10 animate-slide-up" style={{ animationDelay: "0.4s" }}>
             <div className="flex items-center text-muted-foreground">
               <Zap className="h-5 w-5 text-primary mr-2" />
-              <span>Extracción Automática</span>
+              <span>{t.automaticExtraction}</span>
             </div>
             <div className="flex items-center text-muted-foreground">
               <Sparkles className="h-5 w-5 text-accent mr-2" />
-              <span>Contenido IA</span>
+              <span>{t.aiContent}</span>
             </div>
             <div className="flex items-center text-muted-foreground">
               <Play className="h-5 w-5 text-warning mr-2" />
-              <span>Videos Automáticos</span>
+              <span>{t.automaticVideos}</span>
             </div>
           </div>
 
@@ -65,7 +67,7 @@ export function HeroSection() {
               asChild
             >
               <Link to={user ? "/dashboard" : "/auth"}>
-                {user ? "Ir al Dashboard" : "Comenzar Prueba Gratuita"}
+                {user ? t.goToDashboard : t.startFreeTrial}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -77,18 +79,18 @@ export function HeroSection() {
             >
               <Link to={user ? "/process" : "/auth"}>
                 <Play className="mr-2 h-5 w-5" />
-                {user ? "Procesar Propiedades" : "Ver Demo"}
+                {user ? t.processProperties : t.seeDemo}
               </Link>
             </Button>
           </div>
 
           {/* Trust Badge */}
           <div className="mt-12 text-center animate-fade-in" style={{ animationDelay: "0.8s" }}>
-            <p className="text-sm text-muted-foreground mb-4">Confiado por más de 1,000+ agentes inmobiliarios</p>
+            <p className="text-sm text-muted-foreground mb-4">{t.trustedBy}</p>
             <div className="flex justify-center">
               <div className="bg-gradient-card p-4 rounded-lg shadow-card">
                 <span className="text-2xl font-bold text-primary">Keller Williams</span>
-                <span className="text-muted-foreground ml-2">Partner Oficial</span>
+                <span className="text-muted-foreground ml-2">{t.officialPartner}</span>
               </div>
             </div>
           </div>
