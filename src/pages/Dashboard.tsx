@@ -13,11 +13,14 @@ import {
   Plus, 
   Search, 
   Filter, 
+  Download, 
+  Eye, 
   Calendar,
   BarChart3,
   Home,
   Image,
   Video,
+  Share2,
   TrendingUp,
   Loader2
 } from "lucide-react";
@@ -30,6 +33,7 @@ interface Property {
   status: string | null;
   created_at: string;
   images: string[] | null;
+  views: number | null;
 }
 
 export default function Dashboard() {
@@ -56,7 +60,7 @@ export default function Dashboard() {
       
       const { data, error: fetchError } = await supabase
         .from('properties')
-        .select('id, title, address, price, status, created_at, images')
+        .select('id, title, address, price, status, created_at, images, views')
         .order('created_at', { ascending: false });
       
       if (fetchError) {
@@ -275,6 +279,10 @@ export default function Dashboard() {
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(property.created_at).toLocaleDateString()}
                           </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Eye className="h-3 w-3 mr-1" />
+                            {property.views || 0} vistas
+                          </div>
                         </div>
                       </div>
 
@@ -292,6 +300,59 @@ export default function Dashboard() {
                         >
                           {property.status === 'processed' ? 'Procesado' : property.status || 'Pendiente'}
                         </Badge>
+
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => window.open(`/property/${property.id}`, '_blank')}
+                            title="Ver propiedad"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              // Crear contenido para descargar
+                              const content = `
+Título: ${property.title || 'Sin título'}
+Dirección: ${property.address || 'Sin dirección'}
+Precio: ${property.price || 'No especificado'}
+Estado: ${property.status || 'Pendiente'}
+Fecha: ${new Date(property.created_at).toLocaleDateString()}
+Imágenes: ${property.images?.length || 0}
+                              `.trim();
+                              
+                              const blob = new Blob([content], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `propiedad-${property.title?.replace(/\s+/g, '-') || property.id}.txt`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                            }}
+                            title="Descargar información"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              const shareUrl = `${window.location.origin}/property/${property.id}`;
+                              navigator.clipboard.writeText(shareUrl).then(() => {
+                                // Podrías agregar un toast aquí
+                                console.log('Link copiado al portapapeles');
+                              });
+                            }}
+                            title="Compartir propiedad"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
