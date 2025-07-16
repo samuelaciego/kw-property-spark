@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AppLayout } from "@/components/layout/app-layout";
 import { 
   Link, 
   Loader2, 
@@ -155,217 +156,219 @@ export default function PropertyProcessor() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-background border-b border-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Procesar Propiedad</h1>
-            <p className="text-muted-foreground">Extrae datos y genera contenido automáticamente</p>
+    <AppLayout>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-background border-b border-border">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Procesar Propiedad</h1>
+              <p className="text-muted-foreground">Extrae datos y genera contenido automáticamente</p>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          
-          {/* URL Input Section */}
-          <Card className="bg-gradient-card border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Link className="h-5 w-5 mr-2" />
-                Enlace de Propiedad
-              </CardTitle>
-              <CardDescription>
-                Pega el enlace de cualquier propiedad de Keller Williams para comenzar
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="property-url">URL de la Propiedad</Label>
-                <Input
-                  id="property-url"
-                  placeholder="https://www.kw.com/listing/..."
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  disabled={processing}
-                />
-              </div>
-              <Button 
-                onClick={handleProcess}
-                disabled={!url.trim() || processing}
-                className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Procesar Propiedad
-                  </>
-                )}
-              </Button>
-
-              {processing && (
-                <div className="space-y-2">
-                  <Progress value={progress} className="w-full" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    {progress < 20 && "Validando URL..."}
-                    {progress >= 20 && progress < 40 && "Extrayendo datos..."}
-                    {progress >= 40 && progress < 60 && "Analizando imágenes..."}
-                    {progress >= 60 && progress < 80 && "Generando contenido..."}
-                    {progress >= 80 && "Finalizando proceso..."}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Property Data */}
-          {propertyData && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-4xl mx-auto space-y-8">
+            
+            {/* URL Input Section */}
             <Card className="bg-gradient-card border-border/50">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <CheckCircle className="h-5 w-5 mr-2 text-accent" />
-                  Datos Extraídos
+                  <Link className="h-5 w-5 mr-2" />
+                  Enlace de Propiedad
                 </CardTitle>
+                <CardDescription>
+                  Pega el enlace de cualquier propiedad de Keller Williams para comenzar
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Título</Label>
-                      <p className="text-foreground font-medium">{propertyData.title}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Precio</Label>
-                      <p className="text-2xl font-bold text-primary">{propertyData.price}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Dirección</Label>
-                      <p className="text-muted-foreground flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {propertyData.address}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium">Agente</Label>
-                      <div className="space-y-1">
-                        <p className="text-foreground font-medium flex items-center">
-                          <User className="h-4 w-4 mr-1" />
-                          {propertyData.agent.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{propertyData.agent.phone}</p>
-                        <p className="text-sm text-muted-foreground">{propertyData.agent.email}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
+              <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium">Descripción</Label>
-                  <p className="text-muted-foreground mt-1">{propertyData.description}</p>
+                  <Label htmlFor="property-url">URL de la Propiedad</Label>
+                  <Input
+                    id="property-url"
+                    placeholder="https://www.kw.com/listing/..."
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    disabled={processing}
+                  />
                 </div>
+                <Button 
+                  onClick={handleProcess}
+                  disabled={!url.trim() || processing}
+                  className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Procesar Propiedad
+                    </>
+                  )}
+                </Button>
 
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Imágenes Originales ({propertyData.images.length})</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {propertyData.images.map((image, index) => (
-                      <div key={index} className="aspect-video bg-muted rounded-lg border border-border/50"></div>
-                    ))}
+                {processing && (
+                  <div className="space-y-2">
+                    <Progress value={progress} className="w-full" />
+                    <p className="text-sm text-muted-foreground text-center">
+                      {progress < 20 && "Validando URL..."}
+                      {progress >= 20 && progress < 40 && "Extrayendo datos..."}
+                      {progress >= 40 && progress < 60 && "Analizando imágenes..."}
+                      {progress >= 60 && progress < 80 && "Generando contenido..."}
+                      {progress >= 80 && "Finalizando proceso..."}
+                    </p>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
-          )}
 
-          {/* Generated Content */}
-          {generatedContent && (
-            <div className="space-y-6">
-              {/* Social Media Content */}
+            {/* Property Data */}
+            {propertyData && (
               <Card className="bg-gradient-card border-border/50">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <FileText className="h-5 w-5 mr-2" />
-                    Contenido para Redes Sociales
+                    <CheckCircle className="h-5 w-5 mr-2 text-accent" />
+                    Datos Extraídos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Texto Optimizado</Label>
-                    <Textarea 
-                      value={generatedContent.socialText}
-                      readOnly
-                      rows={3}
-                      className="mt-1"
-                    />
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Título</Label>
+                        <p className="text-foreground font-medium">{propertyData.title}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Precio</Label>
+                        <p className="text-2xl font-bold text-primary">{propertyData.price}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Dirección</Label>
+                        <p className="text-muted-foreground flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {propertyData.address}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Agente</Label>
+                        <div className="space-y-1">
+                          <p className="text-foreground font-medium flex items-center">
+                            <User className="h-4 w-4 mr-1" />
+                            {propertyData.agent.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{propertyData.agent.phone}</p>
+                          <p className="text-sm text-muted-foreground">{propertyData.agent.email}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  
                   <div>
-                    <Label className="text-sm font-medium">Hashtags</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {generatedContent.hashtags.map((tag, index) => (
-                        <Badge key={index} variant="secondary">{tag}</Badge>
+                    <Label className="text-sm font-medium">Descripción</Label>
+                    <p className="text-muted-foreground mt-1">{propertyData.description}</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Imágenes Originales ({propertyData.images.length})</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {propertyData.images.map((image, index) => (
+                        <div key={index} className="aspect-video bg-muted rounded-lg border border-border/50"></div>
                       ))}
                     </div>
                   </div>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Generated Images */}
-              <Card className="bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Image className="h-5 w-5 mr-2" />
-                    Imágenes Generadas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {generatedContent.images.map((image, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="aspect-square bg-muted rounded-lg border border-border/50"></div>
-                        <Button size="sm" variant="outline" className="w-full">
-                          <Download className="h-4 w-4 mr-2" />
-                          Descargar {index === 0 ? 'Instagram' : 'Facebook'}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Generated Video */}
-              <Card className="bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Video className="h-5 w-5 mr-2" />
-                    Video Generado
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="aspect-video bg-muted rounded-lg border border-border/50 flex items-center justify-center">
-                      <div className="text-center">
-                        <Video className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground">Preview del video</p>
+            {/* Generated Content */}
+            {generatedContent && (
+              <div className="space-y-6">
+                {/* Social Media Content */}
+                <Card className="bg-gradient-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Contenido para Redes Sociales
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Texto Optimizado</Label>
+                      <Textarea 
+                        value={generatedContent.socialText}
+                        readOnly
+                        rows={3}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Hashtags</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {generatedContent.hashtags.map((tag, index) => (
+                          <Badge key={index} variant="secondary">{tag}</Badge>
+                        ))}
                       </div>
                     </div>
-                    <Button className="w-full bg-gradient-hero">
-                      <Download className="h-4 w-4 mr-2" />
-                      Descargar Video (MP4)
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  </CardContent>
+                </Card>
+
+                {/* Generated Images */}
+                <Card className="bg-gradient-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Image className="h-5 w-5 mr-2" />
+                      Imágenes Generadas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {generatedContent.images.map((image, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="aspect-square bg-muted rounded-lg border border-border/50"></div>
+                          <Button size="sm" variant="outline" className="w-full">
+                            <Download className="h-4 w-4 mr-2" />
+                            Descargar {index === 0 ? 'Instagram' : 'Facebook'}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Generated Video */}
+                <Card className="bg-gradient-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Video className="h-5 w-5 mr-2" />
+                      Video Generado
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="aspect-video bg-muted rounded-lg border border-border/50 flex items-center justify-center">
+                        <div className="text-center">
+                          <Video className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">Preview del video</p>
+                        </div>
+                      </div>
+                      <Button className="w-full bg-gradient-hero">
+                        <Download className="h-4 w-4 mr-2" />
+                        Descargar Video (MP4)
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
