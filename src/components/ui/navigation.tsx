@@ -3,6 +3,7 @@ import { Building2, LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export function Navigation() {
   const location = useLocation();
@@ -64,8 +65,9 @@ export function Navigation() {
             )}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Language Selector and Auth Buttons */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             {user ? (
               <>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
