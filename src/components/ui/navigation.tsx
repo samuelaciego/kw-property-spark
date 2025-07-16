@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Building2, LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
+import { useLanguage } from "@/contexts/language-context";
 
 export function Navigation() {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
+  const { t } = useLanguage();
   const isLandingPage = location.pathname === "/";
 
   return (
@@ -36,7 +38,7 @@ export function Navigation() {
               </>
             ) : (
               <>
-                <Link 
+                 <Link 
                   to="/dashboard" 
                   className={`flex items-center space-x-1 transition-colors ${
                     location.pathname === '/dashboard' 
@@ -45,7 +47,7 @@ export function Navigation() {
                   }`}
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
+                  <span>{t.dashboard}</span>
                 </Link>
                 <Link 
                   to="/process" 
@@ -56,7 +58,7 @@ export function Navigation() {
                   }`}
                 >
                   <Zap className="h-4 w-4" />
-                  <span>Procesar</span>
+                  <span>{t.processProperty}</span>
                 </Link>
               </>
             )}
@@ -66,31 +68,31 @@ export function Navigation() {
           <div className="flex items-center space-x-4">
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
-                  <Link to="/auth">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Iniciar Sesión
-                  </Link>
-                </Button>
-                <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
-                  <Link to="/auth">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Registrarse
-                  </Link>
-                </Button>
+                 <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+                   <Link to="/auth">
+                     <LogIn className="h-4 w-4 mr-2" />
+                     Iniciar Sesión
+                   </Link>
+                 </Button>
+                 <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
+                   <Link to="/auth">
+                     <UserPlus className="h-4 w-4 mr-2" />
+                     Registrarse
+                   </Link>
+                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
-                  <Link to="/profile">
-                    <User className="h-4 w-4" />
-                    {profile?.full_name || user.email?.split('@')[0]}
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
-                  <LogOut className="h-4 w-4" />
-                  Cerrar Sesión
-                </Button>
+                 <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
+                   <Link to="/profile">
+                     <User className="h-4 w-4" />
+                     {profile?.full_name || user.email?.split('@')[0]}
+                   </Link>
+                 </Button>
+                 <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                   <LogOut className="h-4 w-4" />
+                   {t.logout}
+                 </Button>
               </>
             )}
           </div>

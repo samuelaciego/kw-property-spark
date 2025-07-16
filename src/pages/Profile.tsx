@@ -6,7 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+import { useLanguage } from "@/contexts/language-context";
+import { getAvailableLanguages, Language } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/app-layout";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +29,7 @@ import {
 
 export default function Profile() {
   const { profile, user, refreshProfile, loading: authLoading } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -159,9 +163,9 @@ export default function Profile() {
     <AppLayout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Mi Perfil</h1>
+          <h1 className="text-3xl font-bold mb-2">{t.profileTitle}</h1>
           <p className="text-muted-foreground">
-            Gestiona tu información personal y configuración de cuenta
+            {t.personalInformation}
           </p>
         </div>
 
@@ -171,10 +175,10 @@ export default function Profile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Información Personal
+                {t.personalInformation}
               </CardTitle>
               <CardDescription>
-                Actualiza tu información de perfil
+                {t.personalInformation}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -194,27 +198,43 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="full_name">Nombre Completo</Label>
+                  <Label htmlFor="full_name">{t.name}</Label>
                   <Input
                     id="full_name"
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    placeholder="Tu nombre completo"
+                    placeholder={t.name}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="company">Agencia</Label>
+                  <Label htmlFor="company">{t.company}</Label>
                   <Input
                     id="company"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    placeholder="Nombre de tu agencia"
+                    placeholder={t.company}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Logo de la Agencia</Label>
+                  <Label htmlFor="language">{t.language}</Label>
+                  <Select value={language} onValueChange={(value: Language) => setLanguage(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t.language} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableLanguages().map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t.agencyLogo}</Label>
                   <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20">
                       <AvatarImage src={formData.avatar_url} alt="Logo de la agencia" />
@@ -239,7 +259,7 @@ export default function Profile() {
                         ) : (
                           <>
                             <Upload className="h-4 w-4 mr-2" />
-                            Subir Logo
+                            {t.uploadLogo}
                           </>
                         )}
                       </Button>
@@ -264,9 +284,9 @@ export default function Profile() {
                       Guardando...
                     </>
                   ) : (
-                    <>
+                  <>
                       <Save className="h-4 w-4 mr-2" />
-                      Guardar Cambios
+                      {t.save}
                     </>
                   )}
                 </Button>
@@ -279,10 +299,10 @@ export default function Profile() {
             {/* Plan Actual */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="h-5 w-5" />
-                  Plan Actual
-                </CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                {t.currentPlan}
+              </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -297,7 +317,7 @@ export default function Profile() {
                   
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Uso mensual:</span>
+                      <span>{t.usage}:</span>
                       <span className="font-medium">
                         {profile.usage_count || 0} / {profile.monthly_limit || 5} propiedades
                       </span>
@@ -322,7 +342,7 @@ export default function Profile() {
                           <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all" asChild>
                             <Link to="/plans">
                               <CreditCard className="h-4 w-4 mr-2" />
-                              Ver Planes
+                              {t.upgradeNow}
                             </Link>
                           </Button>
                         </div>

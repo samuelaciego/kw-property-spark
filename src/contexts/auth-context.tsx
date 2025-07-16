@@ -13,6 +13,7 @@ interface Profile {
   plan: string;
   usage_count: number;
   monthly_limit: number;
+  language?: string;
   created_at: string;
   updated_at: string;
 }

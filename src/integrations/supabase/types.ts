@@ -22,6 +22,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          language: string | null
           monthly_limit: number | null
           plan: string | null
           updated_at: string
@@ -35,6 +36,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          language?: string | null
           monthly_limit?: number | null
           plan?: string | null
           updated_at?: string
@@ -48,6 +50,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          language?: string | null
           monthly_limit?: number | null
           plan?: string | null
           updated_at?: string
