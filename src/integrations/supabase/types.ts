@@ -20,11 +20,20 @@ export type Database = {
           company: string | null
           created_at: string
           email: string
+          facebook_access_token: string | null
+          facebook_connected: boolean | null
+          facebook_page_id: string | null
           full_name: string | null
           id: string
+          instagram_access_token: string | null
+          instagram_account_id: string | null
+          instagram_connected: boolean | null
           language: string | null
           monthly_limit: number | null
           plan: string | null
+          tiktok_access_token: string | null
+          tiktok_connected: boolean | null
+          tiktok_username: string | null
           updated_at: string
           usage_count: number | null
           user_id: string
@@ -34,11 +43,20 @@ export type Database = {
           company?: string | null
           created_at?: string
           email: string
+          facebook_access_token?: string | null
+          facebook_connected?: boolean | null
+          facebook_page_id?: string | null
           full_name?: string | null
           id?: string
+          instagram_access_token?: string | null
+          instagram_account_id?: string | null
+          instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
           plan?: string | null
+          tiktok_access_token?: string | null
+          tiktok_connected?: boolean | null
+          tiktok_username?: string | null
           updated_at?: string
           usage_count?: number | null
           user_id: string
@@ -48,11 +66,20 @@ export type Database = {
           company?: string | null
           created_at?: string
           email?: string
+          facebook_access_token?: string | null
+          facebook_connected?: boolean | null
+          facebook_page_id?: string | null
           full_name?: string | null
           id?: string
+          instagram_access_token?: string | null
+          instagram_account_id?: string | null
+          instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
           plan?: string | null
+          tiktok_access_token?: string | null
+          tiktok_connected?: boolean | null
+          tiktok_username?: string | null
           updated_at?: string
           usage_count?: number | null
           user_id?: string

@@ -35,6 +35,16 @@ export interface Translations {
   currentPlan: string;
   usage: string;
   upgradeNow: string;
+  socialMediaConnections: string;
+  connectFacebook: string;
+  connectInstagram: string;
+  connectTiktok: string;
+  disconnect: string;
+  connected: string;
+  notConnected: string;
+  facebookPageId: string;
+  instagramAccountId: string;
+  tiktokUsername: string;
   
   // Dashboard
   myProperties: string;
@@ -172,6 +182,16 @@ const translations: Record<Language, Translations> = {
     currentPlan: 'Current Plan',
     usage: 'Usage',
     upgradeNow: 'Upgrade Now',
+    socialMediaConnections: 'Social Media Connections',
+    connectFacebook: 'Connect Facebook',
+    connectInstagram: 'Connect Instagram',
+    connectTiktok: 'Connect TikTok',
+    disconnect: 'Disconnect',
+    connected: 'Connected',
+    notConnected: 'Not Connected',
+    facebookPageId: 'Facebook Page ID',
+    instagramAccountId: 'Instagram Account ID',
+    tiktokUsername: 'TikTok Username',
     
     // Dashboard
     myProperties: 'My Properties',
@@ -307,6 +327,16 @@ const translations: Record<Language, Translations> = {
     currentPlan: 'Plan Actual',
     usage: 'Uso',
     upgradeNow: 'Actualizar Ahora',
+    socialMediaConnections: 'Conexiones de Redes Sociales',
+    connectFacebook: 'Conectar Facebook',
+    connectInstagram: 'Conectar Instagram',
+    connectTiktok: 'Conectar TikTok',
+    disconnect: 'Desconectar',
+    connected: 'Conectado',
+    notConnected: 'No conectado',
+    facebookPageId: 'ID de Página de Facebook',
+    instagramAccountId: 'ID de Cuenta de Instagram',
+    tiktokUsername: 'Usuario de TikTok',
     
     // Dashboard
     myProperties: 'Mis Propiedades',

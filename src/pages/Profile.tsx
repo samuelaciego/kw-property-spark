@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SocialMediaConnections } from "@/components/social-media-connections";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
 import { getAvailableLanguages, Language } from "@/lib/i18n";
@@ -169,9 +170,10 @@ export default function Profile() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Información Personal */}
-          <Card>
+        <div className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Información Personal */}
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -387,6 +389,13 @@ export default function Profile() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+          {/* Conexiones de Redes Sociales */}
+          <SocialMediaConnections 
+            profile={profile} 
+            onUpdate={refreshProfile} 
+          />
         </div>
       </div>
     </AppLayout>
