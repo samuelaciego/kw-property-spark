@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import PropertyProcessor from "./pages/PropertyProcessor";
 import Profile from "./pages/Profile";
 import Plans from "./pages/Plans";
+import PropertyDetail from "./pages/PropertyDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/plans" element={
               <ProtectedRoute>
                 <Plans />
+              </ProtectedRoute>
+            } />
+            <Route path="/property/:id" element={
+              <ProtectedRoute>
+                <PropertyDetail />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
