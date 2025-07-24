@@ -40,6 +40,8 @@ export default function Profile() {
     company: "",
     avatar_url: "",
   });
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
@@ -48,6 +50,7 @@ export default function Profile() {
         company: profile.company || "",
         avatar_url: profile.avatar_url || "",
       });
+      setAvatarUrl(profile.avatar_url || "");
     }
   }, [profile]);
 
@@ -115,6 +118,43 @@ export default function Profile() {
       toast({
         title: "Error",
         description: "No se pudo subir el logo. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUserAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/user-avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('agency-logos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('agency-logos')
+        .getPublicUrl(fileName);
+
+      setAvatarUrl(data.publicUrl);
+
+      toast({
+        title: "Avatar subido",
+        description: "Tu foto de perfil ha sido subida exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error uploading user avatar:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el avatar. Inténtalo de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -235,49 +275,94 @@ export default function Profile() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{t.agencyLogo}</Label>
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={formData.avatar_url} alt="Logo de la agencia" />
-                      <AvatarFallback>
-                        <Building className="h-8 w-8" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="w-fit"
-                      >
-                        {uploading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Subiendo...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 mr-2" />
-                            {t.uploadLogo}
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-muted-foreground">
-                        Formato recomendado: PNG o JPG, máximo 2MB
-                      </p>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                    />
-                  </div>
-                </div>
+                 <div className="space-y-2">
+                   <Label>{t.agencyLogo}</Label>
+                   <div className="flex items-center gap-4">
+                     <Avatar className="h-20 w-20">
+                       <AvatarImage src={formData.avatar_url} alt="Logo de la agencia" />
+                       <AvatarFallback>
+                         <Building className="h-8 w-8" />
+                       </AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col gap-2">
+                       <Button
+                         type="button"
+                         variant="outline"
+                         size="sm"
+                         onClick={() => fileInputRef.current?.click()}
+                         disabled={uploading}
+                         className="w-fit"
+                       >
+                         {uploading ? (
+                           <>
+                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                             Subiendo...
+                           </>
+                         ) : (
+                           <>
+                             <Upload className="h-4 w-4 mr-2" />
+                             {t.uploadLogo}
+                           </>
+                         )}
+                       </Button>
+                       <p className="text-xs text-muted-foreground">
+                         Formato recomendado: PNG o JPG, máximo 2MB
+                       </p>
+                     </div>
+                     <input
+                       ref={fileInputRef}
+                       type="file"
+                       accept="image/*"
+                       onChange={handleAvatarUpload}
+                       className="hidden"
+                     />
+                   </div>
+                 </div>
+
+                 {/* Avatar Personal */}
+                 <div className="space-y-2">
+                   <Label>Avatar Personal</Label>
+                   <div className="flex items-center gap-4">
+                     <Avatar className="h-16 w-16">
+                       <AvatarImage src={avatarUrl} alt="Avatar personal" />
+                       <AvatarFallback>
+                         <User className="h-6 w-6" />
+                       </AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col gap-2">
+                       <Button
+                         type="button"
+                         variant="outline"
+                         size="sm"
+                         onClick={() => avatarInputRef.current?.click()}
+                         disabled={uploading}
+                         className="w-fit"
+                       >
+                         {uploading ? (
+                           <>
+                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                             Subiendo...
+                           </>
+                         ) : (
+                           <>
+                             <Camera className="h-4 w-4 mr-2" />
+                             Subir Avatar
+                           </>
+                         )}
+                       </Button>
+                       <p className="text-xs text-muted-foreground">
+                         Tu foto de perfil personal
+                       </p>
+                     </div>
+                     <input
+                       ref={avatarInputRef}
+                       type="file"
+                       accept="image/*"
+                       onChange={handleUserAvatarUpload}
+                       className="hidden"
+                     />
+                   </div>
+                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading ? (
@@ -296,99 +381,128 @@ export default function Profile() {
             </CardContent>
           </Card>
 
-          {/* Plan y Uso */}
-          <div className="space-y-6">
-            {/* Plan Actual */}
-            <Card>
-              <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                {t.currentPlan}
-              </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Plan:</span>
-                    <Badge className={getPlanColor(profile.plan || 'free')}>
-                      {profile.plan === 'free' ? 'Gratuito' : 
-                       profile.plan === 'premium' ? 'Premium' : 
-                       profile.plan === 'enterprise' ? 'Enterprise' : 'Gratuito'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>{t.usage}:</span>
-                      <span className="font-medium">
-                        {profile.usage_count || 0} / {profile.monthly_limit || 5} propiedades
-                      </span>
-                    </div>
-                    <Progress value={usagePercentage} className="h-2" />
-                    {usagePercentage >= 80 && (
-                      <p className="text-xs text-amber-600">
-                        ⚠️ Te estás acercando a tu límite mensual
-                      </p>
-                    )}
-                  </div>
+           {/* Plan y Uso */}
+           <div className="space-y-6">
+             {/* Plan Actual */}
+             <Card>
+               <CardHeader>
+               <CardTitle className="flex items-center gap-2">
+                 <Crown className="h-5 w-5" />
+                 {t.currentPlan}
+               </CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div className="space-y-4">
+                   <div className="flex items-center justify-between">
+                     <span className="text-sm font-medium">Plan:</span>
+                     <Badge className={getPlanColor(profile.plan || 'free')}>
+                       {profile.plan === 'free' ? 'Gratuito' : 
+                        profile.plan === 'premium' ? 'Premium' : 
+                        profile.plan === 'enterprise' ? 'Enterprise' : 'Gratuito'}
+                     </Badge>
+                   </div>
+                   
+                   <div className="space-y-2">
+                     <div className="flex items-center justify-between text-sm">
+                       <span>{t.usage}:</span>
+                       <span className="font-medium">
+                         {profile.usage_count || 0} / {profile.monthly_limit || 5} propiedades
+                       </span>
+                     </div>
+                     <Progress value={usagePercentage} className="h-2" />
+                     {usagePercentage >= 80 && (
+                       <p className="text-xs text-amber-600">
+                         ⚠️ Te estás acercando a tu límite mensual
+                       </p>
+                     )}
+                   </div>
 
-                  {profile.plan === 'free' && (
-                    <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-                      <div className="flex items-start gap-3">
-                        <TrendingUp className="h-5 w-5 text-primary mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-sm mb-1">Upgrade a Premium</h4>
-                          <p className="text-xs text-muted-foreground mb-3">
-                            Obtén acceso ilimitado a todas las funciones
-                          </p>
-                          <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all" asChild>
-                            <Link to="/plans">
-                              <CreditCard className="h-4 w-4 mr-2" />
-                              {t.upgradeNow}
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                   {profile.plan === 'free' && (
+                     <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                       <div className="flex items-start gap-3">
+                         <TrendingUp className="h-5 w-5 text-primary mt-0.5" />
+                         <div>
+                           <h4 className="font-medium text-sm mb-1">Upgrade a Premium</h4>
+                           <p className="text-xs text-muted-foreground mb-3">
+                             Obtén acceso ilimitado a todas las funciones
+                           </p>
+                           <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all" asChild>
+                             <Link to="/plans">
+                               <CreditCard className="h-4 w-4 mr-2" />
+                               {t.upgradeNow}
+                             </Link>
+                           </Button>
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </CardContent>
+             </Card>
 
-            {/* Estadísticas */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Estadísticas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Propiedades procesadas</span>
-                    </div>
-                    <span className="font-bold text-lg">{profile.usage_count || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Miembro desde</span>
-                    </div>
-                    <span className="text-sm font-medium">
-                      {new Date(profile.created_at).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long'
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+             {/* Estadísticas y Banner */}
+             <div className="grid gap-6 md:grid-cols-2">
+               {/* Estadísticas */}
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <TrendingUp className="h-5 w-5" />
+                     Estadísticas
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="space-y-3">
+                     <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                       <div className="flex items-center gap-2">
+                         <Building className="h-4 w-4 text-muted-foreground" />
+                         <span className="text-sm">Propiedades procesadas</span>
+                       </div>
+                       <span className="font-bold text-lg">{profile.usage_count || 0}</span>
+                     </div>
+                     
+                     <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                       <div className="flex items-center gap-2">
+                         <Mail className="h-4 w-4 text-muted-foreground" />
+                         <span className="text-sm">Miembro desde</span>
+                       </div>
+                       <span className="text-sm font-medium">
+                         {new Date(profile.created_at).toLocaleDateString('es-ES', {
+                           year: 'numeric',
+                           month: 'long'
+                         })}
+                       </span>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Banner de Marketing */}
+               <Card className="bg-gradient-to-br from-primary/5 to-secondary/10 border-primary/20">
+                 <CardContent className="p-6">
+                   <div className="space-y-4">
+                     <h3 className="font-bold text-lg text-primary">
+                       Impulsa tu marca inmobiliaria al siguiente nivel
+                     </h3>
+                     <p className="text-sm text-muted-foreground leading-relaxed">
+                       Estrategias de marketing digital, diseño de alto impacto, desarrollo web a medida y automatizaciones inteligentes, exclusivas para Realtors de alto rendimiento.
+                     </p>
+                     <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-primary/10">
+                       <Mail className="h-4 w-4 text-primary" />
+                       <span className="text-sm font-medium">
+                         📩 Contáctanos en{" "}
+                         <a 
+                           href="mailto:contacto@tuempresa.com" 
+                           className="text-primary hover:underline"
+                         >
+                           contacto@tuempresa.com
+                         </a>
+                       </span>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+             </div>
+           </div>
         </div>
 
           {/* Conexiones de Redes Sociales */}
