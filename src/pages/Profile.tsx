@@ -33,7 +33,8 @@ export default function Profile() {
   const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -91,12 +92,12 @@ export default function Profile() {
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !profile) return;
 
-    setUploading(true);
+    setUploadingLogo(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/agency-logo.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('agency-logos')
@@ -108,7 +109,16 @@ export default function Profile() {
         .from('agency-logos')
         .getPublicUrl(fileName);
 
+      // Actualizar inmediatamente en la base de datos
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('user_id', profile.user_id);
+
+      if (updateError) throw updateError;
+
       setFormData({ ...formData, avatar_url: data.publicUrl });
+      await refreshProfile();
 
       toast({
         title: "Logo subido",
@@ -122,7 +132,7 @@ export default function Profile() {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      setUploadingLogo(false);
     }
   };
 
@@ -130,7 +140,7 @@ export default function Profile() {
     const file = event.target.files?.[0];
     if (!file || !user || !profile) return;
 
-    setUploading(true);
+    setUploadingAvatar(true);
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/user-avatar.${fileExt}`;
@@ -168,7 +178,7 @@ export default function Profile() {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      setUploadingAvatar(false);
     }
   };
 
@@ -295,25 +305,25 @@ export default function Profile() {
                        </AvatarFallback>
                      </Avatar>
                      <div className="flex flex-col gap-2">
-                       <Button
-                         type="button"
-                         variant="outline"
-                         size="sm"
-                         onClick={() => fileInputRef.current?.click()}
-                         disabled={uploading}
-                         className="w-fit"
-                       >
-                         {uploading ? (
-                           <>
-                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                             Subiendo...
-                           </>
-                         ) : (
-                           <>
-                             <Upload className="h-4 w-4 mr-2" />
-                             {t.uploadLogo}
-                           </>
-                         )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingLogo}
+                          className="w-fit"
+                        >
+                          {uploadingLogo ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Subiendo...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              {t.uploadLogo}
+                            </>
+                          )}
                        </Button>
                        <p className="text-xs text-muted-foreground">
                          Formato recomendado: PNG o JPG, máximo 2MB
@@ -340,25 +350,25 @@ export default function Profile() {
                        </AvatarFallback>
                      </Avatar>
                      <div className="flex flex-col gap-2">
-                       <Button
-                         type="button"
-                         variant="outline"
-                         size="sm"
-                         onClick={() => avatarInputRef.current?.click()}
-                         disabled={uploading}
-                         className="w-fit"
-                       >
-                         {uploading ? (
-                           <>
-                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                             Subiendo...
-                           </>
-                         ) : (
-                           <>
-                             <Camera className="h-4 w-4 mr-2" />
-                             Subir Avatar
-                           </>
-                         )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => avatarInputRef.current?.click()}
+                          disabled={uploadingAvatar}
+                          className="w-fit"
+                        >
+                          {uploadingAvatar ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Subiendo...
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="h-4 w-4 mr-2" />
+                              Subir Avatar
+                            </>
+                          )}
                        </Button>
                        <p className="text-xs text-muted-foreground">
                          Tu foto de perfil personal
