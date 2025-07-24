@@ -440,68 +440,65 @@ export default function Profile() {
                </CardContent>
              </Card>
 
-             {/* Estadísticas y Banner */}
-             <div className="grid gap-6 md:grid-cols-2">
-               {/* Estadísticas */}
-               <Card>
-                 <CardHeader>
-                   <CardTitle className="flex items-center gap-2">
-                     <TrendingUp className="h-5 w-5" />
-                     Estadísticas
-                   </CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="space-y-3">
-                     <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                       <div className="flex items-center gap-2">
-                         <Building className="h-4 w-4 text-muted-foreground" />
-                         <span className="text-sm">Propiedades procesadas</span>
-                       </div>
-                       <span className="font-bold text-lg">{profile.usage_count || 0}</span>
-                     </div>
-                     
-                     <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                       <div className="flex items-center gap-2">
-                         <Mail className="h-4 w-4 text-muted-foreground" />
-                         <span className="text-sm">Miembro desde</span>
-                       </div>
-                       <span className="text-sm font-medium">
-                         {new Date(profile.created_at).toLocaleDateString('es-ES', {
-                           year: 'numeric',
-                           month: 'long'
-                         })}
-                       </span>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
+              {/* Estadísticas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Estadísticas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Propiedades procesadas</span>
+                      </div>
+                      <span className="font-bold text-lg">{profile.usage_count || 0}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Miembro desde</span>
+                      </div>
+                      <span className="text-sm font-medium">
+                        {new Date(profile.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long'
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-               {/* Banner de Marketing */}
-               <Card className="bg-gradient-to-br from-primary/5 to-secondary/10 border-primary/20">
-                 <CardContent className="p-6">
-                   <div className="space-y-4">
-                     <h3 className="font-bold text-lg text-primary">
-                       Impulsa tu marca inmobiliaria al siguiente nivel
-                     </h3>
-                     <p className="text-sm text-muted-foreground leading-relaxed">
-                       Estrategias de marketing digital, diseño de alto impacto, desarrollo web a medida y automatizaciones inteligentes, exclusivas para Realtors de alto rendimiento.
-                     </p>
-                     <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-primary/10">
-                       <Mail className="h-4 w-4 text-primary" />
-                       <span className="text-sm font-medium">
-                         📩 Contáctanos en{" "}
-                         <a 
-                           href="mailto:contacto@tuempresa.com" 
-                           className="text-primary hover:underline"
-                         >
-                           contacto@tuempresa.com
-                         </a>
-                       </span>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             </div>
+              {/* Banner de Marketing */}
+              <Card className="bg-gradient-to-br from-primary/5 to-secondary/10 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg text-primary">
+                      Impulsa tu marca inmobiliaria al siguiente nivel
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Estrategias de marketing digital, diseño de alto impacto, desarrollo web a medida y automatizaciones inteligentes, exclusivas para Realtors de alto rendimiento.
+                    </p>
+                    <div className="flex items-center gap-2 p-3 bg-background/50 rounded-lg border border-primary/10">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">
+                        📩 Contáctanos en{" "}
+                        <a 
+                          href="mailto:contacto@tuempresa.com" 
+                          className="text-primary hover:underline"
+                        >
+                          contacto@tuempresa.com
+                        </a>
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
            </div>
         </div>
 
