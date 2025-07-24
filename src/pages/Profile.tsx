@@ -50,7 +50,8 @@ export default function Profile() {
         company: profile.company || "",
         avatar_url: profile.avatar_url || "",
       });
-      setAvatarUrl(profile.avatar_url || "");
+      // Usar el campo user_avatar_url temporal hasta que se actualice el tipo
+      setAvatarUrl((profile as any).user_avatar_url || "");
     }
   }, [profile]);
 
@@ -144,10 +145,10 @@ export default function Profile() {
         .from('agency-logos')
         .getPublicUrl(fileName);
 
-      // Actualizar en la base de datos también
+      // Actualizar en la base de datos el campo específico para avatar personal
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: data.publicUrl })
+        .update({ user_avatar_url: data.publicUrl })
         .eq('user_id', profile.user_id);
 
       if (updateError) throw updateError;

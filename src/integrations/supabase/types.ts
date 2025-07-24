@@ -36,6 +36,7 @@ export type Database = {
           tiktok_username: string | null
           updated_at: string
           usage_count: number | null
+          user_avatar_url: string | null
           user_id: string
         }
         Insert: {
@@ -59,6 +60,7 @@ export type Database = {
           tiktok_username?: string | null
           updated_at?: string
           usage_count?: number | null
+          user_avatar_url?: string | null
           user_id: string
         }
         Update: {
@@ -82,6 +84,7 @@ export type Database = {
           tiktok_username?: string | null
           updated_at?: string
           usage_count?: number | null
+          user_avatar_url?: string | null
           user_id?: string
         }
         Relationships: []
