@@ -127,7 +127,7 @@ export default function Profile() {
 
   const handleUserAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !profile) return;
 
     setUploading(true);
     try {
@@ -144,7 +144,16 @@ export default function Profile() {
         .from('agency-logos')
         .getPublicUrl(fileName);
 
+      // Actualizar en la base de datos también
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('user_id', profile.user_id);
+
+      if (updateError) throw updateError;
+
       setAvatarUrl(data.publicUrl);
+      await refreshProfile();
 
       toast({
         title: "Avatar subido",
