@@ -79,6 +79,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
+        // Clear potentially corrupted session data
+        if (error.message.includes('Invalid token') || error.message.includes('signature is invalid')) {
+          console.log('Clearing corrupted session data');
+          supabase.auth.signOut();
+        }
       }
       
       console.log('Initial session:', session);
