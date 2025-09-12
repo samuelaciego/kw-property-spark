@@ -347,7 +347,17 @@ export default function PropertyProcessor() {
                     <Label className="text-sm font-medium mb-3 block">Imágenes Originales ({propertyData.images.length})</Label>
                     <div className="grid grid-cols-3 gap-2">
                       {propertyData.images.map((image, index) => (
-                        <div key={index} className="aspect-video bg-muted rounded-lg border border-border/50"></div>
+                        <div key={index} className="aspect-video rounded-lg border border-border/50 overflow-hidden">
+                          <img 
+                            src={image} 
+                            alt={`Imagen ${index + 1} de la propiedad`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80';
+                            }}
+                            onClick={() => window.open(image, '_blank')}
+                          />
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -399,7 +409,17 @@ export default function PropertyProcessor() {
                     <div className="grid md:grid-cols-2 gap-4">
                       {generatedContent.images.map((image, index) => (
                         <div key={index} className="space-y-2">
-                          <div className="aspect-square bg-muted rounded-lg border border-border/50"></div>
+                          <div className="aspect-square rounded-lg border border-border/50 overflow-hidden">
+                            <img 
+                              src={image} 
+                              alt={`Imagen generada ${index + 1}`}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80';
+                              }}
+                              onClick={() => window.open(image, '_blank')}
+                            />
+                          </div>
                           <Button size="sm" variant="outline" className="w-full">
                             <Download className="h-4 w-4 mr-2" />
                             Descargar {index === 0 ? 'Instagram' : 'Facebook'}
