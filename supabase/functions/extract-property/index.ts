@@ -224,7 +224,26 @@ function extractDescription(html: string): string {
 
 function extractPrice(html: string): string {
   try {
-    // Look for Euro and Dollar price patterns
+    // First try to find price in PropertyPrice class
+    const propertyPricePatterns = [
+      /<[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
+      /<div[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
+      /<span[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
+      /<p[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
+    ];
+
+    for (const pattern of propertyPricePatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        let price = match[1].replace(/<[^>]*>/g, '').trim();
+        console.log('Found PropertyPrice class content:', price);
+        if (price && (price.includes('€') || price.includes('$') || price.match(/[\d,]+/))) {
+          return price;
+        }
+      }
+    }
+
+    // Fallback: Look for Euro and Dollar price patterns
     const euroPricePatterns = [
       /€[\s]*[\d,]+(?:\.[\d]{2})?/g,
       /[\d,]+(?:\.[\d]{2})?[\s]*€/g,
