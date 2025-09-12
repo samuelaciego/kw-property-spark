@@ -1,1 +1,4 @@
 project_id = "vtkphubycpmygsvhtuvp"
+
+[functions.extract-property]
+verify_jwt = false

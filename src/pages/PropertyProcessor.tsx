@@ -90,7 +90,7 @@ export default function PropertyProcessor() {
     setProcessing(true);
     setProgress(0);
     
-    // Simular proceso de extracción
+    // Proceso real de extracción
     const steps = [
       { message: "Validando URL...", progress: 20 },
       { message: "Extrayendo datos de la propiedad...", progress: 40 },
@@ -99,51 +99,58 @@ export default function PropertyProcessor() {
       { message: "Finalizando proceso...", progress: 100 }
     ];
 
-    for (const step of steps) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setProgress(step.progress);
-    }
-
-    // Datos simulados
-    setPropertyData({
-      title: "Casa Moderna con Vista Panorámica",
-      description: "Hermosa casa de 3 habitaciones y 2.5 baños con acabados de lujo, cocina gourmet y vista espectacular a las montañas. Perfecta para familias que buscan comodidad y elegancia.",
-      price: "$750,000",
-      address: "123 Mountain View Drive, Austin, TX 78701",
-      images: [
-        "/api/placeholder/400/300",
-        "/api/placeholder/400/300", 
-        "/api/placeholder/400/300"
-      ],
-      agent: {
-        name: "María González",
-        phone: "(555) 123-4567",
-        email: "maria.gonzalez@kw.com"
-      }
-    });
-
-    const generatedContent = {
-      socialText: "🏡 ¡NUEVA PROPIEDAD DISPONIBLE! Esta espectacular casa moderna te espera con vistas panorámicas increíbles. 3 habitaciones, 2.5 baños y acabados de primera calidad. ¡No dejes pasar esta oportunidad única!",
-      hashtags: ["#CasaEnVenta", "#Austin", "#KellerWilliams", "#BienesRaices", "#PropiedadDeLujo", "#VistaPanoramica"],
-      images: [
-        "/api/placeholder/400/400",
-        "/api/placeholder/400/400"
-      ],
-      videoUrl: "/api/placeholder/video"
-    };
-
-    // Save to database
     try {
+      // Step 1: Validation
+      setProgress(20);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Step 2: Extract property data
+      setProgress(40);
+      const { data: propertyResult, error: propertyError } = await supabase.functions.invoke('extract-property', {
+        body: { url }
+      });
+
+      if (propertyError) {
+        throw new Error(propertyError.message || 'Error al extraer datos de la propiedad');
+      }
+
+      if (!propertyResult.success) {
+        throw new Error(propertyResult.error || 'No se pudieron extraer los datos');
+      }
+
+      const extractedData = propertyResult.data;
+      setPropertyData(extractedData);
+
+      // Step 3: Analyzing images
+      setProgress(60);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Step 4: Generate content
+      setProgress(80);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Step 5: Finalize
+      setProgress(100);
+      
+      // Generate social media content based on extracted data
+      const generatedContent = {
+        socialText: `🏡 ¡NUEVA PROPIEDAD DISPONIBLE! ${extractedData.title} te espera con características increíbles. ${extractedData.description.substring(0, 100)}... ¡No dejes pasar esta oportunidad única!`,
+        hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices", "#PropiedadDeLujo", "#Oportunidad"],
+        images: extractedData.images.slice(0, 2), // Use first 2 extracted images
+        videoUrl: "/api/placeholder/video"
+      };
+
+      // Save to database
       const newProperty = {
         user_id: profile.user_id,
         url,
-        title: propertyData?.title || "Propiedad sin título",
-        description: propertyData?.description,
-        price: propertyData?.price,
-        address: propertyData?.address,
-        agent_name: propertyData?.agent?.name,
-        agent_phone: propertyData?.agent?.phone,
-        images: propertyData?.images || [],
+        title: extractedData.title || "Propiedad sin título",
+        description: extractedData.description,
+        price: extractedData.price,
+        address: extractedData.address,
+        agent_name: extractedData.agent?.name,
+        agent_phone: extractedData.agent?.phone,
+        images: extractedData.images || [],
         social_content: generatedContent.socialText,
         hashtags: generatedContent.hashtags,
         status: "processed"
@@ -158,20 +165,21 @@ export default function PropertyProcessor() {
         .eq('user_id', profile.user_id);
       
       await refreshProfile();
-
       setGeneratedContent(generatedContent);
 
       toast({
         title: "¡Propiedad procesada!",
         description: "El contenido ha sido generado exitosamente.",
       });
-    } catch (error) {
-      console.error('Error saving property:', error);
+    } catch (extractError) {
+      console.error('Error during extraction:', extractError);
       toast({
-        title: "Error",
-        description: "Hubo un problema al procesar la propiedad.",
+        title: "Error en extracción",
+        description: extractError.message || "No se pudieron extraer los datos de la propiedad",
         variant: "destructive",
       });
+      setProcessing(false);
+      return;
     }
 
     setProcessing(false);
