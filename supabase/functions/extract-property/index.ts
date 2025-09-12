@@ -192,10 +192,39 @@ function extractTitle(html: string): string {
 
 function extractDescription(html: string): string {
   try {
-    // Try multiple selectors for description - get longer content
+    console.log('Searching for PropertyDescription-content class...');
+    
+    // First try to find description in PropertyDescription-content class
+    const propertyDescPatterns = [
+      /<[^>]*class="[^"]*PropertyDescription-content[^"]*"[^>]*>(.*?)<\/[^>]*>/is,
+      /<div[^>]*class="[^"]*PropertyDescription-content[^"]*"[^>]*>(.*?)<\/div>/is,
+      /<section[^>]*class="[^"]*PropertyDescription-content[^"]*"[^>]*>(.*?)<\/section>/is,
+      /<p[^>]*class="[^"]*PropertyDescription-content[^"]*"[^>]*>(.*?)<\/p>/is,
+    ];
+
+    for (const pattern of propertyDescPatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        let description = match[1]
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        console.log('Found PropertyDescription-content:', description.substring(0, 100) + '...');
+        
+        // If it's longer than 50 characters, it's likely a good description
+        if (description.length > 50) {
+          return description.substring(0, 1000);
+        }
+      }
+    }
+
+    console.log('PropertyDescription-content not found, trying other patterns...');
+    
+    // Fallback: Try other description patterns
     const descPatterns = [
       /<meta[^>]*name="description"[^>]*content="([^"]+)"/i,
-      /<div[^>]*class="[^"]*description[^"]*"[^>]*>([^<]+)/i,
+      /<div[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/div>/is,
       /<div[^>]*class="[^"]*property-description[^"]*"[^>]*>(.*?)<\/div>/is,
       /<section[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/section>/is,
       /<p[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/p>/is,
@@ -215,6 +244,8 @@ function extractDescription(html: string): string {
         }
       }
     }
+    
+    console.log('No description found');
   } catch (error) {
     console.error('Error extracting description:', error);
   }
@@ -224,12 +255,14 @@ function extractDescription(html: string): string {
 
 function extractPrice(html: string): string {
   try {
-    // First try to find price in PropertyPrice class
+    console.log('Searching for PropertyPrice class...');
+    
+    // First try to find price in PropertyPrice class with more comprehensive patterns
     const propertyPricePatterns = [
-      /<[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
-      /<div[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
-      /<span[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
-      /<p[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>([^<]+)</i,
+      /<[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>(.*?)<\/[^>]*>/is,
+      /<div[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>(.*?)<\/div>/is,
+      /<span[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>(.*?)<\/span>/is,
+      /<p[^>]*class="[^"]*PropertyPrice[^"]*"[^>]*>(.*?)<\/p>/is,
     ];
 
     for (const pattern of propertyPricePatterns) {
@@ -237,60 +270,41 @@ function extractPrice(html: string): string {
       if (match && match[1]) {
         let price = match[1].replace(/<[^>]*>/g, '').trim();
         console.log('Found PropertyPrice class content:', price);
-        if (price && (price.includes('€') || price.includes('$') || price.match(/[\d,]+/))) {
+        if (price && price.length > 1) {
           return price;
         }
       }
     }
 
-    // Fallback: Look for Euro and Dollar price patterns
-    const euroPricePatterns = [
-      /€[\s]*[\d,]+(?:\.[\d]{2})?/g,
-      /[\d,]+(?:\.[\d]{2})?[\s]*€/g,
-      /[\d,]+(?:\.[\d]{2})?[\s]*EUR/gi,
+    console.log('PropertyPrice not found, trying general price patterns...');
+    
+    // Fallback: Look for price patterns in the HTML
+    const generalPricePatterns = [
+      /€\s*[\d.,]+(?:\s*€)?/gi,
+      /[\d.,]+\s*€/gi,
+      /\$\s*[\d.,]+/gi,
+      /[\d.,]+\s*USD/gi,
+      /EUR\s*[\d.,]+/gi,
+      /[\d.,]+\s*EUR/gi,
     ];
     
-    const dollarPricePatterns = [
-      /\$[\s]*[\d,]+(?:\.[\d]{2})?/g,
-      /[\d,]+(?:\.[\d]{2})?[\s]*USD/gi,
-    ];
-    
-    // First try Euro patterns (since this is likely Spanish property)
-    for (const pattern of euroPricePatterns) {
+    for (const pattern of generalPricePatterns) {
       const matches = html.match(pattern);
       if (matches && matches.length > 0) {
-        // Get the largest number (likely the main price)
-        const prices = matches
-          .map(m => {
-            const numbers = m.replace(/[^\d,]/g, '');
-            return { original: m, number: parseFloat(numbers.replace(/,/g, '')) };
-          })
-          .filter(p => p.number > 10000) // Filter reasonable property prices
-          .sort((a, b) => b.number - a.number);
+        console.log('Found price matches:', matches);
+        // Get the one that looks most like a property price
+        const validPrices = matches.filter(price => {
+          const numbers = price.replace(/[^\d]/g, '');
+          return numbers.length >= 4; // At least 4 digits
+        });
         
-        if (prices.length > 0) {
-          return prices[0].original.trim();
+        if (validPrices.length > 0) {
+          return validPrices[0].trim();
         }
       }
     }
     
-    // Then try dollar patterns
-    for (const pattern of dollarPricePatterns) {
-      const matches = html.match(pattern);
-      if (matches && matches.length > 0) {
-        const prices = matches
-          .map(m => {
-            const numbers = m.replace(/[^\d,]/g, '');
-            return { original: m, number: parseFloat(numbers.replace(/,/g, '')) };
-          })
-          .filter(p => p.number > 10000)
-          .sort((a, b) => b.number - a.number);
-        
-        if (prices.length > 0) {
-          return prices[0].original.trim();
-        }
-      }
-    }
+    console.log('No price patterns found');
   } catch (error) {
     console.error('Error extracting price:', error);
   }
