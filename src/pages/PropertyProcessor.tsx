@@ -128,12 +128,33 @@ export default function PropertyProcessor() {
       
       console.log('Extract property response:', { propertyResult, propertyError });
 
+      // Handle error case properly - check if propertyError exists and has details
       if (propertyError) {
-        throw new Error(propertyError.message || 'Error al extraer datos de la propiedad');
+        console.log('Function error details:', propertyError);
+        
+        // Try to extract error details from the error object
+        let errorMessage = 'Error al extraer datos de la propiedad';
+        
+        if (propertyError.message) {
+          errorMessage = propertyError.message;
+        }
+        
+        // If the error has context or details, use them
+        if (typeof propertyError.context === 'object' && propertyError.context?.error) {
+          errorMessage = propertyError.context.error;
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      if (!propertyResult.success) {
+      // Also check if the response indicates failure
+      if (propertyResult && !propertyResult.success) {
         throw new Error(propertyResult.error || 'No se pudieron extraer los datos');
+      }
+
+      // Check if we have valid data
+      if (!propertyResult || !propertyResult.data) {
+        throw new Error('No se recibieron datos válidos de la propiedad');
       }
 
       const extractedData = propertyResult.data;
