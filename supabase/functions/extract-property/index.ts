@@ -1,5 +1,3 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -19,17 +17,26 @@ interface PropertyData {
 }
 
 Deno.serve(async (req) => {
+  console.log('Edge function called with method:', req.method);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { url } = await req.json();
+    const body = await req.json();
+    console.log('Request body:', body);
+    
+    const { url } = body;
     
     if (!url) {
+      console.log('No URL provided in request');
       return new Response(
-        JSON.stringify({ error: 'URL is required' }),
+        JSON.stringify({ 
+          success: false, 
+          error: 'URL is required' 
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -75,6 +82,7 @@ Deno.serve(async (req) => {
     console.error('Error extracting property data:', error);
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: 'Failed to extract property data', 
         details: error.message 
       }),
