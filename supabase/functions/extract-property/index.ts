@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
       price: extractPrice(html) || 'Precio disponible bajo consulta',
       address: extractAddress(html) || 'Dirección disponible',
       images: extractImages(html, url) || [],
-      agent: {
+      agent: extractAgent(html) || {
         name: 'Agente de Keller Williams',
         phone: '(555) 123-4567',
         email: 'agente@kw.com'
@@ -192,19 +192,27 @@ function extractTitle(html: string): string {
 
 function extractDescription(html: string): string {
   try {
-    // Try multiple selectors for description
+    // Try multiple selectors for description - get longer content
     const descPatterns = [
       /<meta[^>]*name="description"[^>]*content="([^"]+)"/i,
+      /<div[^>]*class="[^"]*description[^"]*"[^>]*>([^<]+)/i,
+      /<div[^>]*class="[^"]*property-description[^"]*"[^>]*>(.*?)<\/div>/is,
+      /<section[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/section>/is,
+      /<p[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)<\/p>/is,
     ];
 
     for (const pattern of descPatterns) {
       const match = html.match(pattern);
       if (match && match[1]) {
-        return match[1]
+        let description = match[1]
           .replace(/<[^>]*>/g, ' ')
           .replace(/\s+/g, ' ')
-          .trim()
-          .substring(0, 500);
+          .trim();
+        
+        // If it's longer than 100 characters, it's likely a good description
+        if (description.length > 100) {
+          return description.substring(0, 800);
+        }
       }
     }
   } catch (error) {
@@ -216,32 +224,69 @@ function extractDescription(html: string): string {
 
 function extractPrice(html: string): string {
   try {
-    // Look for price patterns
-    const pricePattern = /\$[\d,]+(?:\.\d{2})?/g;
-    const matches = html.match(pricePattern);
+    // Look for Euro and Dollar price patterns
+    const euroPricePatterns = [
+      /€[\s]*[\d,]+(?:\.[\d]{2})?/g,
+      /[\d,]+(?:\.[\d]{2})?[\s]*€/g,
+      /[\d,]+(?:\.[\d]{2})?[\s]*EUR/gi,
+    ];
     
-    if (matches && matches.length > 0) {
-      // Get the largest number (likely the main price)
-      const prices = matches
-        .map(m => m.replace(/[^\d,.]/g, ''))
-        .filter(p => p.length > 4)
-        .sort((a, b) => parseFloat(b.replace(/,/g, '')) - parseFloat(a.replace(/,/g, '')));
-      
-      if (prices.length > 0) {
-        return `$${prices[0]}`;
+    const dollarPricePatterns = [
+      /\$[\s]*[\d,]+(?:\.[\d]{2})?/g,
+      /[\d,]+(?:\.[\d]{2})?[\s]*USD/gi,
+    ];
+    
+    // First try Euro patterns (since this is likely Spanish property)
+    for (const pattern of euroPricePatterns) {
+      const matches = html.match(pattern);
+      if (matches && matches.length > 0) {
+        // Get the largest number (likely the main price)
+        const prices = matches
+          .map(m => {
+            const numbers = m.replace(/[^\d,]/g, '');
+            return { original: m, number: parseFloat(numbers.replace(/,/g, '')) };
+          })
+          .filter(p => p.number > 10000) // Filter reasonable property prices
+          .sort((a, b) => b.number - a.number);
+        
+        if (prices.length > 0) {
+          return prices[0].original.trim();
+        }
+      }
+    }
+    
+    // Then try dollar patterns
+    for (const pattern of dollarPricePatterns) {
+      const matches = html.match(pattern);
+      if (matches && matches.length > 0) {
+        const prices = matches
+          .map(m => {
+            const numbers = m.replace(/[^\d,]/g, '');
+            return { original: m, number: parseFloat(numbers.replace(/,/g, '')) };
+          })
+          .filter(p => p.number > 10000)
+          .sort((a, b) => b.number - a.number);
+        
+        if (prices.length > 0) {
+          return prices[0].original.trim();
+        }
       }
     }
   } catch (error) {
     console.error('Error extracting price:', error);
   }
 
-  return '$450,000';
+  return 'Precio disponible bajo consulta';
 }
 
 function extractAddress(html: string): string {
   try {
-    // Simple address extraction
+    // Enhanced address extraction patterns
     const addressPatterns = [
+      /<div[^>]*class="[^"]*address[^"]*"[^>]*>([^<]+)/i,
+      /<span[^>]*class="[^"]*address[^"]*"[^>]*>([^<]+)/i,
+      /<p[^>]*class="[^"]*address[^"]*"[^>]*>([^<]+)/i,
+      /<div[^>]*class="[^"]*location[^"]*"[^>]*>([^<]+)/i,
       /address[^>]*>([^<]+)</i,
       /location[^>]*>([^<]+)</i
     ];
@@ -249,40 +294,150 @@ function extractAddress(html: string): string {
     for (const pattern of addressPatterns) {
       const match = html.match(pattern);
       if (match && match[1]) {
-        return match[1].replace(/<[^>]*>/g, '').trim();
+        let address = match[1].replace(/<[^>]*>/g, '').trim();
+        if (address.length > 10) { // Ensure it's a reasonable address
+          return address;
+        }
       }
     }
   } catch (error) {
     console.error('Error extracting address:', error);
   }
 
-  return '123 Main Street, Austin, TX 78701';
+  return 'Dirección disponible';
+}
+
+function extractAgent(html: string): { name: string; phone: string; email: string } | null {
+  try {
+    let agentName = '';
+    let agentPhone = '';
+    let agentEmail = '';
+
+    // Extract agent name
+    const namePatterns = [
+      /<div[^>]*class="[^"]*agent[^"]*"[^>]*>.*?<h[1-6][^>]*>([^<]+)/is,
+      /<span[^>]*class="[^"]*agent[^"]*name[^"]*"[^>]*>([^<]+)/i,
+      /<div[^>]*class="[^"]*contact[^"]*"[^>]*>.*?<h[1-6][^>]*>([^<]+)/is,
+      /<p[^>]*class="[^"]*agent[^"]*"[^>]*>([^<]+)/i,
+    ];
+
+    for (const pattern of namePatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        agentName = match[1].replace(/<[^>]*>/g, '').trim();
+        if (agentName.length > 3) break;
+      }
+    }
+
+    // Extract phone number
+    const phonePatterns = [
+      /(\+34\s*[\d\s]{9,})/g,
+      /([\d]{3}\s*[\d]{3}\s*[\d]{3})/g,
+      /tel:[\s]*([^"]+)/i,
+      /phone[^>]*>([^<]+)/i,
+    ];
+
+    for (const pattern of phonePatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        agentPhone = match[1].trim();
+        if (agentPhone.length > 8) break;
+      }
+    }
+
+    // Extract email
+    const emailPatterns = [
+      /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+      /mailto:([^"]+)/i,
+    ];
+
+    for (const pattern of emailPatterns) {
+      const match = html.match(pattern);
+      if (match && match[1]) {
+        agentEmail = match[1].trim();
+        if (agentEmail.includes('@')) break;
+      }
+    }
+
+    // Return only if we found meaningful data
+    if (agentName.length > 3 || agentPhone.length > 8 || agentEmail.includes('@')) {
+      return {
+        name: agentName || 'Agente de Keller Williams',
+        phone: agentPhone || '+34 922 123 456',
+        email: agentEmail || 'agente@kw.com'
+      };
+    }
+  } catch (error) {
+    console.error('Error extracting agent:', error);
+  }
+
+  return null;
 }
 
 function extractImages(html: string, baseUrl: string): string[] {
   try {
     const images: string[] = [];
-    const imgPattern = /<img[^>]*src="([^"]+)"[^>]*>/gi;
     
-    let match;
-    let count = 0;
-    while ((match = imgPattern.exec(html)) !== null && count < 5) {
-      let src = match[1];
-      
-      // Skip small images, icons, and logos
-      if (src.includes('logo') || src.includes('icon') || src.includes('thumb')) {
-        continue;
+    // Look specifically for carousel or gallery images
+    const carouselPatterns = [
+      /<img[^>]*class="[^"]*carousel[^"]*"[^>]*src="([^"]+)"/gi,
+      /<img[^>]*class="[^"]*gallery[^"]*"[^>]*src="([^"]+)"/gi,
+      /<img[^>]*class="[^"]*slider[^"]*"[^>]*src="([^"]+)"/gi,
+      /<div[^>]*class="[^"]*carousel[^"]*"[^>]*>.*?<img[^>]*src="([^"]+)"/gis,
+      /<div[^>]*class="[^"]*gallery[^"]*"[^>]*>.*?<img[^>]*src="([^"]+)"/gis,
+    ];
+    
+    // Try carousel-specific patterns first
+    for (const pattern of carouselPatterns) {
+      let match;
+      while ((match = pattern.exec(html)) !== null && images.length < 8) {
+        let src = match[1];
+        
+        // Skip small images, icons, logos, and thumbnails
+        if (src.includes('logo') || src.includes('icon') || src.includes('thumb') || 
+            src.includes('avatar') || src.includes('profile') || src.includes('favicon')) {
+          continue;
+        }
+        
+        // Convert relative URLs to absolute
+        if (src.startsWith('/')) {
+          const urlObj = new URL(baseUrl);
+          src = `${urlObj.protocol}//${urlObj.host}${src}`;
+        }
+        
+        if (src.startsWith('http') && !images.includes(src)) {
+          images.push(src);
+        }
       }
-      
-      // Convert relative URLs to absolute
-      if (src.startsWith('/')) {
-        const urlObj = new URL(baseUrl);
-        src = `${urlObj.protocol}//${urlObj.host}${src}`;
-      }
-      
-      if (src.startsWith('http')) {
-        images.push(src);
-        count++;
+    }
+    
+    // If no carousel images found, fallback to regular img extraction
+    if (images.length === 0) {
+      const imgPattern = /<img[^>]*src="([^"]+)"[^>]*>/gi;
+      let match;
+      while ((match = imgPattern.exec(html)) !== null && images.length < 5) {
+        let src = match[1];
+        
+        // Skip small images, icons, logos, and thumbnails
+        if (src.includes('logo') || src.includes('icon') || src.includes('thumb') || 
+            src.includes('avatar') || src.includes('profile') || src.includes('favicon') ||
+            src.includes('placeholder')) {
+          continue;
+        }
+        
+        // Look for larger images (likely property photos)
+        if (src.includes('800') || src.includes('1000') || src.includes('large') || 
+            src.includes('medium') || src.includes('photo')) {
+          
+          if (src.startsWith('/')) {
+            const urlObj = new URL(baseUrl);
+            src = `${urlObj.protocol}//${urlObj.host}${src}`;
+          }
+          
+          if (src.startsWith('http') && !images.includes(src)) {
+            images.push(src);
+          }
+        }
       }
     }
 
