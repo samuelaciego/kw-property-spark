@@ -53,8 +53,30 @@ export default function PropertyProcessor() {
     videoUrl?: string;
   } | null>(null);
 
+  const isValidKWUrl = (url: string) => {
+    try {
+      const parsedUrl = new URL(url);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      
+      // Check if it's kw.com or any subdomain of kw.com
+      return hostname === 'kw.com' || hostname.endsWith('.kw.com');
+    } catch {
+      return false;
+    }
+  };
+
   const handleProcess = async () => {
     if (!url.trim()) return;
+    
+    // Validate that URL is from kw.com domain
+    if (!isValidKWUrl(url)) {
+      toast({
+        title: "URL no válida",
+        description: "Solo se permiten enlaces de propiedades de Keller Williams (*.kw.com)",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (!profile || profile.usage_count >= profile.monthly_limit) {
       toast({
