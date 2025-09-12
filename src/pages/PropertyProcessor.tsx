@@ -58,18 +58,33 @@ export default function PropertyProcessor() {
       const parsedUrl = new URL(url);
       const hostname = parsedUrl.hostname.toLowerCase();
       
+      console.log('Validating URL:', url, 'Hostname:', hostname);
+      
       // Check if it's kw.com or any subdomain of kw.com
-      return hostname === 'kw.com' || hostname.endsWith('.kw.com');
-    } catch {
+      const isValid = hostname === 'kw.com' || hostname.endsWith('.kw.com');
+      console.log('Is valid KW domain:', isValid);
+      
+      return isValid;
+    } catch (error) {
+      console.log('URL parsing error:', error);
       return false;
     }
   };
 
   const handleProcess = async () => {
-    if (!url.trim()) return;
+    console.log('handleProcess called with URL:', url);
+    
+    if (!url.trim()) {
+      console.log('Empty URL, returning');
+      return;
+    }
     
     // Validate that URL is from kw.com domain
-    if (!isValidKWUrl(url)) {
+    const isValid = isValidKWUrl(url);
+    console.log('URL validation result:', isValid, 'for URL:', url);
+    
+    if (!isValid) {
+      console.log('Invalid KW URL detected');
       toast({
         title: "URL no válida",
         description: "Solo se permiten enlaces de propiedades de Keller Williams (*.kw.com)",
@@ -106,9 +121,12 @@ export default function PropertyProcessor() {
 
       // Step 2: Extract property data
       setProgress(40);
+      console.log('Calling extract-property function with URL:', url);
       const { data: propertyResult, error: propertyError } = await supabase.functions.invoke('extract-property', {
         body: { url }
       });
+      
+      console.log('Extract property response:', { propertyResult, propertyError });
 
       if (propertyError) {
         throw new Error(propertyError.message || 'Error al extraer datos de la propiedad');
