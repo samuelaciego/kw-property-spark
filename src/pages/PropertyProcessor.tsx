@@ -187,8 +187,8 @@ export default function PropertyProcessor() {
         description: extractedData.description,
         price: extractedData.price,
         address: extractedData.address,
-        agent_name: extractedData.agent?.name,
-        agent_phone: extractedData.agent?.phone,
+        agent_name: profile.full_name || "Agente",
+        agent_phone: (profile as any).phone || "",
         images: extractedData.images || [],
         social_content: generatedContent.socialText,
         hashtags: generatedContent.hashtags,
@@ -329,10 +329,10 @@ export default function PropertyProcessor() {
                         <div className="space-y-1">
                           <p className="text-foreground font-medium flex items-center">
                             <User className="h-4 w-4 mr-1" />
-                            {propertyData.agent.name}
+                            {profile?.full_name || "Agente"}
                           </p>
-                          <p className="text-sm text-muted-foreground">{propertyData.agent.phone}</p>
-                          <p className="text-sm text-muted-foreground">{propertyData.agent.email}</p>
+                          <p className="text-sm text-muted-foreground">{(profile as any)?.phone || "Teléfono no disponible"}</p>
+                          <p className="text-sm text-muted-foreground">{profile?.email || "Email no disponible"}</p>
                         </div>
                       </div>
                     </div>
