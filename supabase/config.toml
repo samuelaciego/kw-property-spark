@@ -2,3 +2,6 @@ project_id = "vtkphubycpmygsvhtuvp"
 
 [functions.extract-property]
 verify_jwt = false
+
+[functions.generate-social-content]
+verify_jwt = true
