@@ -1,0 +1,110 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const { propertyId, imageUrls, caption, hashtags } = await req.json()
+    
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // Get auth header and extract user
+    const authHeader = req.headers.get('Authorization')!
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    
+    const { data: { user } } = await supabaseUser.auth.getUser()
+    if (!user) throw new Error('No authenticated user')
+
+    // Get user's Instagram credentials
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('instagram_access_token, instagram_account_id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile?.instagram_access_token || !profile?.instagram_account_id) {
+      throw new Error('Instagram no conectado')
+    }
+
+    console.log('Publishing to Instagram...', { propertyId, imageUrls: imageUrls?.length })
+
+    // Prepare content
+    const fullCaption = `${caption}\n\n${hashtags.join(' ')}`
+    const imageUrl = imageUrls[0] // Instagram single post for now
+
+    // Step 1: Create media container
+    const mediaResponse = await fetch(
+      `https://graph.facebook.com/v18.0/${profile.instagram_account_id}/media`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          image_url: imageUrl,
+          caption: fullCaption,
+          access_token: profile.instagram_access_token
+        })
+      }
+    )
+
+    const mediaData = await mediaResponse.json()
+    
+    if (mediaData.error) {
+      throw new Error(`Instagram API error: ${mediaData.error.message}`)
+    }
+
+    // Step 2: Publish media container
+    const publishResponse = await fetch(
+      `https://graph.facebook.com/v18.0/${profile.instagram_account_id}/media_publish`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          creation_id: mediaData.id,
+          access_token: profile.instagram_access_token
+        })
+      }
+    )
+
+    const publishData = await publishResponse.json()
+    
+    if (publishData.error) {
+      throw new Error(`Instagram publish error: ${publishData.error.message}`)
+    }
+
+    console.log('Instagram post published successfully:', publishData.id)
+
+    // Update property with post info
+    await supabaseAdmin
+      .from('properties')
+      .update({
+        instagram_post_id: publishData.id,
+        instagram_published_at: new Date().toISOString()
+      })
+      .eq('id', propertyId)
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      postId: publishData.id,
+      url: `https://www.instagram.com/p/${publishData.id}/`
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+
+  } catch (error) {
+    console.error('Instagram publish error:', error)
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+})

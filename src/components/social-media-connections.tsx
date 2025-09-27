@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Facebook, Instagram, VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/language-context";
 import { useToast } from "@/hooks/use-toast";
@@ -16,86 +15,85 @@ interface SocialMediaConnectionsProps {
 export function SocialMediaConnections({ profile, onUpdate }: SocialMediaConnectionsProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-
-  const [connections, setConnections] = useState({
-    facebook: {
-      connected: profile?.facebook_connected || false,
-      pageId: profile?.facebook_page_id || "",
-    },
-    instagram: {
-      connected: profile?.instagram_connected || false,
-      accountId: profile?.instagram_account_id || "",
-    },
-    tiktok: {
-      connected: profile?.tiktok_connected || false,
-      username: profile?.tiktok_username || "",
-    },
+  const [isConnecting, setIsConnecting] = useState({
+    facebook: false,
+    instagram: false,
+    tiktok: false
   });
 
-  const handleConnect = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
-    setLoading(true);
+  const handleOAuthConnect = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
+    setIsConnecting(prev => ({ ...prev, [platform]: true }));
+    
     try {
-      const updates: any = {};
+      let functionName = '';
       
-      if (platform === 'facebook') {
-        updates.facebook_connected = true;
-        updates.facebook_page_id = connections.facebook.pageId;
-      } else if (platform === 'instagram') {
-        updates.instagram_connected = true;
-        updates.instagram_account_id = connections.instagram.accountId;
+      if (platform === 'facebook' || platform === 'instagram') {
+        functionName = 'oauth-facebook';
       } else if (platform === 'tiktok') {
-        updates.tiktok_connected = true;
-        updates.tiktok_username = connections.tiktok.username;
+        functionName = 'oauth-tiktok';
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('user_id', profile.user_id);
+      const currentUrl = new URL(window.location.href);
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: JSON.stringify({ 
+          action: 'get_auth_url',
+          user_id: profile.user_id 
+        })
+      });
 
       if (error) throw error;
 
-      setConnections(prev => ({
-        ...prev,
-        [platform]: { ...prev[platform], connected: true }
-      }));
+      // Open OAuth popup
+      const popup = window.open(
+        data.authUrl, 
+        'oauth_popup',
+        'width=600,height=600,scrollbars=yes,resizable=yes'
+      );
 
-      toast({
-        title: t.connected,
-        description: `${platform.charAt(0).toUpperCase() + platform.slice(1)} ${t.connected.toLowerCase()}`,
-      });
+      // Listen for popup close or success
+      const checkPopup = setInterval(() => {
+        if (popup?.closed) {
+          clearInterval(checkPopup);
+          setIsConnecting(prev => ({ ...prev, [platform]: false }));
+          
+          // Wait a bit and refresh profile
+          setTimeout(() => {
+            onUpdate();
+            toast({
+              title: "Conexión completada",
+              description: `Revisa si ${platform} se conectó correctamente.`,
+            });
+          }, 1000);
+        }
+      }, 1000);
 
-      onUpdate();
-    } catch (error) {
-      console.error(`Error connecting ${platform}:`, error);
+    } catch (error: any) {
+      console.error(`Error connecting to ${platform}:`, error);
       toast({
-        title: "Error",
-        description: `Error al conectar ${platform}`,
+        title: "Error de conexión",
+        description: `No se pudo conectar con ${platform}. Inténtalo de nuevo.`,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      setIsConnecting(prev => ({ ...prev, [platform]: false }));
     }
   };
 
   const handleDisconnect = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
-    setLoading(true);
     try {
       const updates: any = {};
       
       if (platform === 'facebook') {
         updates.facebook_connected = false;
-        updates.facebook_page_id = null;
         updates.facebook_access_token = null;
+        updates.facebook_page_id = null;
       } else if (platform === 'instagram') {
         updates.instagram_connected = false;
-        updates.instagram_account_id = null;
         updates.instagram_access_token = null;
+        updates.instagram_account_id = null;
       } else if (platform === 'tiktok') {
         updates.tiktok_connected = false;
-        updates.tiktok_username = null;
         updates.tiktok_access_token = null;
+        updates.tiktok_username = null;
       }
 
       const { error } = await supabase
@@ -105,14 +103,9 @@ export function SocialMediaConnections({ profile, onUpdate }: SocialMediaConnect
 
       if (error) throw error;
 
-      setConnections(prev => ({
-        ...prev,
-        [platform]: { ...prev[platform], connected: false }
-      }));
-
       toast({
-        title: t.disconnect,
-        description: `${platform.charAt(0).toUpperCase() + platform.slice(1)} desconectado`,
+        title: "Desconectado exitosamente",
+        description: `${platform === 'facebook' ? 'Facebook' : platform === 'instagram' ? 'Instagram' : 'TikTok'} ha sido desconectado.`,
       });
 
       onUpdate();
@@ -120,11 +113,9 @@ export function SocialMediaConnections({ profile, onUpdate }: SocialMediaConnect
       console.error(`Error disconnecting ${platform}:`, error);
       toast({
         title: "Error",
-        description: `Error al desconectar ${platform}`,
+        description: `No se pudo desconectar de ${platform}.`,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -136,143 +127,133 @@ export function SocialMediaConnections({ profile, onUpdate }: SocialMediaConnect
           {t.socialMediaConnections}
         </CardTitle>
         <CardDescription>
-          Conecta tus redes sociales para publicar automáticamente el contenido generado
+          Conecta tus redes sociales usando OAuth para publicar automáticamente
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Facebook */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Facebook className="h-6 w-6 text-blue-600" />
-              <div>
-                <h3 className="font-medium">Facebook</h3>
-                <p className="text-sm text-muted-foreground">
-                  {connections.facebook.connected ? t.connected : t.notConnected}
-                </p>
-              </div>
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-full dark:bg-blue-900">
+              <Facebook className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            {connections.facebook.connected ? (
-              <Button
-                variant="outline"
-                onClick={() => handleDisconnect('facebook')}
-                disabled={loading}
-              >
-                {t.disconnect}
-              </Button>
+            <div>
+              <h4 className="font-medium">Facebook</h4>
+              <p className="text-sm text-muted-foreground">
+                Publica en tu página de Facebook
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {profile?.facebook_connected ? (
+              <>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {t.connected}
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDisconnect('facebook')}
+                >
+                  {t.disconnect}
+                </Button>
+              </>
             ) : (
               <Button
-                onClick={() => handleConnect('facebook')}
-                disabled={loading || !connections.facebook.pageId}
+                onClick={() => handleOAuthConnect('facebook')}
+                disabled={isConnecting.facebook}
+                size="sm"
               >
-                {t.connectFacebook}
+                {isConnecting.facebook ? 'Conectando...' : t.connectFacebook}
               </Button>
             )}
           </div>
-          {!connections.facebook.connected && (
-            <div className="space-y-2">
-              <Label htmlFor="facebook-page-id">{t.facebookPageId}</Label>
-              <Input
-                id="facebook-page-id"
-                value={connections.facebook.pageId}
-                onChange={(e) => setConnections(prev => ({
-                  ...prev,
-                  facebook: { ...prev.facebook, pageId: e.target.value }
-                }))}
-                placeholder="123456789"
-              />
-            </div>
-          )}
         </div>
 
         {/* Instagram */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Instagram className="h-6 w-6 text-pink-600" />
-              <div>
-                <h3 className="font-medium">Instagram</h3>
-                <p className="text-sm text-muted-foreground">
-                  {connections.instagram.connected ? t.connected : t.notConnected}
-                </p>
-              </div>
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-pink-100 rounded-full dark:bg-pink-900">
+              <Instagram className="h-5 w-5 text-pink-600 dark:text-pink-400" />
             </div>
-            {connections.instagram.connected ? (
-              <Button
-                variant="outline"
-                onClick={() => handleDisconnect('instagram')}
-                disabled={loading}
-              >
-                {t.disconnect}
-              </Button>
+            <div>
+              <h4 className="font-medium">Instagram</h4>
+              <p className="text-sm text-muted-foreground">
+                Publica fotos en tu cuenta de Instagram Business
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {profile?.instagram_connected ? (
+              <>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {t.connected}
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDisconnect('instagram')}
+                >
+                  {t.disconnect}
+                </Button>
+              </>
             ) : (
               <Button
-                onClick={() => handleConnect('instagram')}
-                disabled={loading || !connections.instagram.accountId}
+                onClick={() => handleOAuthConnect('instagram')}
+                disabled={isConnecting.instagram}
+                size="sm"
+                variant="outline"
               >
-                {t.connectInstagram}
+                {isConnecting.instagram ? 'Conectando...' : 'Conectar vía Facebook'}
               </Button>
             )}
           </div>
-          {!connections.instagram.connected && (
-            <div className="space-y-2">
-              <Label htmlFor="instagram-account-id">{t.instagramAccountId}</Label>
-              <Input
-                id="instagram-account-id"
-                value={connections.instagram.accountId}
-                onChange={(e) => setConnections(prev => ({
-                  ...prev,
-                  instagram: { ...prev.instagram, accountId: e.target.value }
-                }))}
-                placeholder="123456789"
-              />
-            </div>
-          )}
         </div>
 
         {/* TikTok */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <VideoIcon className="h-6 w-6 text-black" />
-              <div>
-                <h3 className="font-medium">TikTok</h3>
-                <p className="text-sm text-muted-foreground">
-                  {connections.tiktok.connected ? t.connected : t.notConnected}
-                </p>
-              </div>
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gray-100 rounded-full dark:bg-gray-800">
+              <VideoIcon className="h-5 w-5" />
             </div>
-            {connections.tiktok.connected ? (
-              <Button
-                variant="outline"
-                onClick={() => handleDisconnect('tiktok')}
-                disabled={loading}
-              >
-                {t.disconnect}
-              </Button>
+            <div>
+              <h4 className="font-medium">TikTok</h4>
+              <p className="text-sm text-muted-foreground">
+                Crea y sube videos automáticamente
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            {profile?.tiktok_connected ? (
+              <>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  {t.connected}
+                </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDisconnect('tiktok')}
+                >
+                  {t.disconnect}
+                </Button>
+              </>
             ) : (
               <Button
-                onClick={() => handleConnect('tiktok')}
-                disabled={loading || !connections.tiktok.username}
+                onClick={() => handleOAuthConnect('tiktok')}
+                disabled={isConnecting.tiktok}
+                size="sm"
               >
-                {t.connectTiktok}
+                {isConnecting.tiktok ? 'Conectando...' : t.connectTiktok}
               </Button>
             )}
           </div>
-          {!connections.tiktok.connected && (
-            <div className="space-y-2">
-              <Label htmlFor="tiktok-username">{t.tiktokUsername}</Label>
-              <Input
-                id="tiktok-username"
-                value={connections.tiktok.username}
-                onChange={(e) => setConnections(prev => ({
-                  ...prev,
-                  tiktok: { ...prev.tiktok, username: e.target.value }
-                }))}
-                placeholder="@usuario"
-              />
-            </div>
-          )}
+        </div>
+
+        <div className="text-sm text-muted-foreground mt-4">
+          <p>
+            <strong>Nota:</strong> Las conexiones OAuth son seguras y te permiten publicar usando tus propias credenciales. 
+            Puedes desconectarlas en cualquier momento.
+          </p>
         </div>
       </CardContent>
     </Card>

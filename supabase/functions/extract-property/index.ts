@@ -61,8 +61,7 @@ Deno.serve(async (req) => {
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1',
           'Cache-Control': 'max-age=0'
-        },
-        timeout: 10000
+        }
       });
     } catch (fetchError) {
       console.error('Fetch error:', fetchError);
@@ -136,7 +135,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: false,
         error: 'Error interno del servidor', 
-        details: error.message 
+        details: (error as Error).message 
       }),
       { 
         status: 500, 
