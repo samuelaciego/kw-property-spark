@@ -33,13 +33,7 @@ export function SocialMediaConnections({ profile, onUpdate }: SocialMediaConnect
         functionName = 'oauth-tiktok';
       }
 
-      const currentUrl = new URL(window.location.href);
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: JSON.stringify({ 
-          action: 'get_auth_url',
-          user_id: profile.user_id 
-        })
-      });
+      const { data, error } = await supabase.functions.invoke(functionName + `?action=get_auth_url&user_id=${profile.user_id}`);
 
       if (error) throw error;
 
