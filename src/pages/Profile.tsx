@@ -40,6 +40,10 @@ export default function Profile() {
     full_name: "",
     company: "",
     avatar_url: "",
+    country: "",
+    city: "",
+    phone: "",
+    timezone: "",
   });
   const [avatarUrl, setAvatarUrl] = useState("");
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +54,10 @@ export default function Profile() {
         full_name: profile.full_name || "",
         company: profile.company || "",
         avatar_url: profile.avatar_url || "",
+        country: (profile as any).country || "",
+        city: (profile as any).city || "",
+        phone: (profile as any).phone || "",
+        timezone: (profile as any).timezone || "",
       });
       // Usar el campo user_avatar_url temporal hasta que se actualice el tipo
       setAvatarUrl((profile as any).user_avatar_url || "");
@@ -68,6 +76,10 @@ export default function Profile() {
           full_name: formData.full_name,
           company: formData.company,
           avatar_url: formData.avatar_url,
+          country: formData.country,
+          city: formData.city,
+          phone: formData.phone,
+          timezone: formData.timezone,
         })
         .eq('user_id', profile.user_id);
 
@@ -277,6 +289,58 @@ export default function Profile() {
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     placeholder={t.company}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">País</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    placeholder="País"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ciudad</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="Ciudad"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Teléfono"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Zona Horaria</Label>
+                  <Select value={formData.timezone} onValueChange={(value) => setFormData({ ...formData, timezone: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar zona horaria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/Argentina/Buenos_Aires">Buenos Aires (UTC-3)</SelectItem>
+                      <SelectItem value="America/Santiago">Santiago (UTC-3)</SelectItem>
+                      <SelectItem value="America/Bogota">Bogotá (UTC-5)</SelectItem>
+                      <SelectItem value="America/Lima">Lima (UTC-5)</SelectItem>
+                      <SelectItem value="America/Mexico_City">Ciudad de México (UTC-6)</SelectItem>
+                      <SelectItem value="America/New_York">Nueva York (UTC-5)</SelectItem>
+                      <SelectItem value="Europe/Madrid">Madrid (UTC+1)</SelectItem>
+                      <SelectItem value="Europe/London">Londres (UTC+0)</SelectItem>
+                      <SelectItem value="America/Los_Angeles">Los Ángeles (UTC-8)</SelectItem>
+                      <SelectItem value="UTC">UTC (UTC+0)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

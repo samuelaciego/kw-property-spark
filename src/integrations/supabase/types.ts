@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -17,7 +17,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          city: string | null
           company: string | null
+          country: string | null
           created_at: string
           email: string
           facebook_access_token: string | null
@@ -30,10 +32,12 @@ export type Database = {
           instagram_connected: boolean | null
           language: string | null
           monthly_limit: number | null
+          phone: string | null
           plan: string | null
           tiktok_access_token: string | null
           tiktok_connected: boolean | null
           tiktok_username: string | null
+          timezone: string | null
           updated_at: string
           usage_count: number | null
           user_avatar_url: string | null
@@ -41,7 +45,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          city?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
           email: string
           facebook_access_token?: string | null
@@ -54,10 +60,12 @@ export type Database = {
           instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
+          phone?: string | null
           plan?: string | null
           tiktok_access_token?: string | null
           tiktok_connected?: boolean | null
           tiktok_username?: string | null
+          timezone?: string | null
           updated_at?: string
           usage_count?: number | null
           user_avatar_url?: string | null
@@ -65,7 +73,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          city?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
           email?: string
           facebook_access_token?: string | null
@@ -78,10 +88,12 @@ export type Database = {
           instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
+          phone?: string | null
           plan?: string | null
           tiktok_access_token?: string | null
           tiktok_connected?: boolean | null
           tiktok_username?: string | null
+          timezone?: string | null
           updated_at?: string
           usage_count?: number | null
           user_avatar_url?: string | null
