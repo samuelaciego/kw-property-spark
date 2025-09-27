@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/layout/app-layout";
+import { SocialMediaPublisher } from "@/components/social-media-publisher";
 import { 
   Link, 
   Loader2, 
@@ -454,6 +455,25 @@ export default function PropertyProcessor() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {/* Social Media Publisher */}
+            {propertyData && profile && (
+              <SocialMediaPublisher 
+                propertyData={{
+                  id: url, // Using URL as temp ID since we don't have the actual DB ID
+                  title: propertyData.title,
+                  description: propertyData.description,
+                  price: propertyData.price,
+                  address: propertyData.address,
+                  images: propertyData.images,
+                  social_content: generatedContent?.socialText || '',
+                  hashtags: generatedContent?.hashtags || [],
+                  agent_name: profile?.full_name || null,
+                  agent_phone: (profile as any)?.phone || null
+                }} 
+                profile={profile} 
+              />
             )}
           </div>
         </div>
