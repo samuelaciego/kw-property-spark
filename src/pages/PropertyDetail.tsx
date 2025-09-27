@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SocialMediaPublisher } from "@/components/social-media-publisher";
 import { ArrowLeft, MapPin, DollarSign, Calendar, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 interface Property {
@@ -21,6 +22,12 @@ interface Property {
   hashtags: string[] | null;
   agent_name: string | null;
   agent_phone: string | null;
+  facebook_post_id: string | null;
+  facebook_published_at: string | null;
+  instagram_post_id: string | null;
+  instagram_published_at: string | null;
+  tiktok_video_id: string | null;
+  tiktok_published_at: string | null;
 }
 const PropertyDetail = () => {
   const {
@@ -30,7 +37,8 @@ const PropertyDetail = () => {
   }>();
   const navigate = useNavigate();
   const {
-    user
+    user,
+    profile
   } = useAuth();
   const {
     toast
@@ -173,8 +181,58 @@ const PropertyDetail = () => {
                     </span>)}
                 </div>
               </div>}
+
+            {/* Tracking de publicaciones en redes sociales */}
+            {(property.facebook_published_at || property.instagram_published_at || property.tiktok_published_at) && (
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Estado de Publicaciones</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {property.facebook_published_at && (
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                      <p className="font-medium text-blue-800">Facebook</p>
+                      <p className="text-sm text-blue-600">
+                        Publicado: {new Date(property.facebook_published_at).toLocaleDateString('es-ES')}
+                      </p>
+                      {property.facebook_post_id && (
+                        <p className="text-xs text-blue-500">ID: {property.facebook_post_id}</p>
+                      )}
+                    </div>
+                  )}
+                  {property.instagram_published_at && (
+                    <div className="bg-pink-50 border border-pink-200 p-3 rounded-lg">
+                      <p className="font-medium text-pink-800">Instagram</p>
+                      <p className="text-sm text-pink-600">
+                        Publicado: {new Date(property.instagram_published_at).toLocaleDateString('es-ES')}
+                      </p>
+                      {property.instagram_post_id && (
+                        <p className="text-xs text-pink-500">ID: {property.instagram_post_id}</p>
+                      )}
+                    </div>
+                  )}
+                  {property.tiktok_published_at && (
+                    <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
+                      <p className="font-medium text-gray-800">TikTok</p>
+                      <p className="text-sm text-gray-600">
+                        Creado: {new Date(property.tiktok_published_at).toLocaleDateString('es-ES')}
+                      </p>
+                      {property.tiktok_video_id && (
+                        <p className="text-xs text-gray-500">ID: {property.tiktok_video_id}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* SocialMediaPublisher Component */}
+        {profile && property && (
+          <SocialMediaPublisher 
+            propertyData={property} 
+            profile={profile} 
+          />
+        )}
       </div>
     </AppLayout>;
 };
