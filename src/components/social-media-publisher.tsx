@@ -47,84 +47,30 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
     tiktok?: PublishResult;
   }>({});
 
-  const [contentGenerated, setContentGenerated] = useState(false);
+  const [contentGenerated, setContentGenerated] = useState({
+    facebook: false,
+    instagram: false,
+    tiktok: false
+  });
 
   const { toast } = useToast();
 
-  // Auto-generate content when component mounts
+  // Auto-generate content when component mounts - one call per platform
   useEffect(() => {
-    if (propertyData && !contentGenerated) {
-      generateAllContent();
-    }
-  }, [propertyData, contentGenerated]);
-
-  const generateAllContent = async () => {
-    const platforms = ['facebook', 'instagram', 'tiktok'] as const;
-    
-    setGeneratingAI({
-      facebook: true,
-      instagram: true,
-      tiktok: true
-    });
-
-    try {
-      const promises = platforms.map(async (platform) => {
-        const { data, error } = await supabase.functions.invoke('generate-social-content', {
-          body: {
-            platform,
-            propertyData: {
-              title: propertyData.title,
-              description: propertyData.description,
-              price: propertyData.price,
-              address: propertyData.address
-            }
-          }
-        });
-
-        if (error) throw new Error(`Error generating ${platform} content: ${error.message}`);
-        
-        return { platform, content: data.generatedContent };
-      });
-
-      const results = await Promise.all(promises);
-      
-      const newCaptions = { facebook: '', instagram: '', tiktok: '' };
-      results.forEach(({ platform, content }) => {
-        newCaptions[platform] = content;
-      });
-
-      setCustomCaptions(newCaptions);
-      setContentGenerated(true);
-      
-      toast({
-        title: "¡Contenido generado!",
-        description: "Contenido para todas las redes sociales generado con IA exitosamente."
-      });
-
-    } catch (error: any) {
-      console.error('AI generation error:', error);
-      toast({
-        title: "Error al generar contenido",
-        description: error.message || "No se pudo generar el contenido con IA.",
-        variant: "destructive"
-      });
-      
-      // Fallback to original content
-      setCustomCaptions({
-        facebook: propertyData.social_content || '',
-        instagram: propertyData.social_content || '',
-        tiktok: propertyData.title || ''
-      });
-    } finally {
-      setGeneratingAI({
-        facebook: false,
-        instagram: false,
-        tiktok: false
+    if (propertyData) {
+      const platforms = ['facebook', 'instagram', 'tiktok'] as const;
+      platforms.forEach(platform => {
+        if (!contentGenerated[platform]) {
+          generateWithAI(platform);
+        }
       });
     }
-  };
+  }, [propertyData]);
 
   const generateWithAI = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
+    // Don't generate if already generated for this platform
+    if (contentGenerated[platform]) return;
+
     setGeneratingAI(prev => ({ ...prev, [platform]: true }));
 
     try {
@@ -146,6 +92,9 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
         ...prev, 
         [platform]: data.generatedContent 
       }));
+
+      // Mark this platform as generated
+      setContentGenerated(prev => ({ ...prev, [platform]: true }));
       
       toast({
         title: "¡Contenido generado!",
