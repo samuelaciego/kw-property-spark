@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +24,9 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
   profile 
 }) => {
   const [customCaptions, setCustomCaptions] = useState({
-    facebook: propertyData.social_content || '',
-    instagram: propertyData.social_content || '',
-    tiktok: propertyData.title || ''
+    facebook: '',
+    instagram: '',
+    tiktok: ''
   });
 
   const [publishing, setPublishing] = useState({
@@ -47,7 +47,82 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
     tiktok?: PublishResult;
   }>({});
 
+  const [contentGenerated, setContentGenerated] = useState(false);
+
   const { toast } = useToast();
+
+  // Auto-generate content when component mounts
+  useEffect(() => {
+    if (propertyData && !contentGenerated) {
+      generateAllContent();
+    }
+  }, [propertyData, contentGenerated]);
+
+  const generateAllContent = async () => {
+    const platforms = ['facebook', 'instagram', 'tiktok'] as const;
+    
+    setGeneratingAI({
+      facebook: true,
+      instagram: true,
+      tiktok: true
+    });
+
+    try {
+      const promises = platforms.map(async (platform) => {
+        const { data, error } = await supabase.functions.invoke('generate-social-content', {
+          body: {
+            platform,
+            propertyData: {
+              title: propertyData.title,
+              description: propertyData.description,
+              price: propertyData.price,
+              address: propertyData.address
+            }
+          }
+        });
+
+        if (error) throw new Error(`Error generating ${platform} content: ${error.message}`);
+        
+        return { platform, content: data.generatedContent };
+      });
+
+      const results = await Promise.all(promises);
+      
+      const newCaptions = { facebook: '', instagram: '', tiktok: '' };
+      results.forEach(({ platform, content }) => {
+        newCaptions[platform] = content;
+      });
+
+      setCustomCaptions(newCaptions);
+      setContentGenerated(true);
+      
+      toast({
+        title: "¡Contenido generado!",
+        description: "Contenido para todas las redes sociales generado con IA exitosamente."
+      });
+
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast({
+        title: "Error al generar contenido",
+        description: error.message || "No se pudo generar el contenido con IA.",
+        variant: "destructive"
+      });
+      
+      // Fallback to original content
+      setCustomCaptions({
+        facebook: propertyData.social_content || '',
+        instagram: propertyData.social_content || '',
+        tiktok: propertyData.title || ''
+      });
+    } finally {
+      setGeneratingAI({
+        facebook: false,
+        instagram: false,
+        tiktok: false
+      });
+    }
+  };
 
   const generateWithAI = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
     setGeneratingAI(prev => ({ ...prev, [platform]: true }));
@@ -278,27 +353,21 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
           </div>
           
           <div className="space-y-3">
-            <div className="flex gap-2">
+            {generatingAI.facebook ? (
+              <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Generando contenido con IA...</p>
+                </div>
+              </div>
+            ) : (
               <Textarea
-                placeholder="Personaliza el mensaje para Facebook..."
+                placeholder="Contenido generado automáticamente con Gemini..."
                 value={customCaptions.facebook}
                 onChange={(e) => setCustomCaptions(prev => ({ ...prev, facebook: e.target.value }))}
-                className="min-h-[100px] flex-1"
+                className="min-h-[120px]"
               />
-              <Button
-                onClick={() => generateWithAI('facebook')}
-                disabled={generatingAI.facebook}
-                variant="outline"
-                size="sm"
-                className="h-auto px-3"
-              >
-                {generatingAI.facebook ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            )}
             
             <Button
               onClick={publishToFacebook}
@@ -355,27 +424,21 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
           </div>
           
           <div className="space-y-3">
-            <div className="flex gap-2">
+            {generatingAI.instagram ? (
+              <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Generando contenido con IA...</p>
+                </div>
+              </div>
+            ) : (
               <Textarea
-                placeholder="Personaliza el mensaje para Instagram..."
+                placeholder="Contenido generado automáticamente con Gemini..."
                 value={customCaptions.instagram}
                 onChange={(e) => setCustomCaptions(prev => ({ ...prev, instagram: e.target.value }))}
-                className="min-h-[100px] flex-1"
+                className="min-h-[120px]"
               />
-              <Button
-                onClick={() => generateWithAI('instagram')}
-                disabled={generatingAI.instagram}
-                variant="outline"
-                size="sm"
-                className="h-auto px-3"
-              >
-                {generatingAI.instagram ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            )}
             
             <Button
               onClick={publishToInstagram}
@@ -421,27 +484,21 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
           </div>
           
           <div className="space-y-3">
-            <div className="flex gap-2">
+            {generatingAI.tiktok ? (
+              <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Generando contenido con IA...</p>
+                </div>
+              </div>
+            ) : (
               <Textarea
-                placeholder="Título y descripción para el video de TikTok..."
+                placeholder="Contenido generado automáticamente con Gemini..."
                 value={customCaptions.tiktok}
                 onChange={(e) => setCustomCaptions(prev => ({ ...prev, tiktok: e.target.value }))}
-                className="min-h-[100px] flex-1"
+                className="min-h-[120px]"
               />
-              <Button
-                onClick={() => generateWithAI('tiktok')}
-                disabled={generatingAI.tiktok}
-                variant="outline"
-                size="sm"
-                className="h-auto px-3"
-              >
-                {generatingAI.tiktok ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            )}
             
             <Button
               onClick={createTikTokVideo}
