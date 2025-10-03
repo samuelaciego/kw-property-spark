@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -51,6 +53,12 @@ export default function PropertyProcessor() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
+  const [publicationType, setPublicationType] = useState("en-venta");
+  const [selectedPlatforms, setSelectedPlatforms] = useState({
+    facebook: true,
+    instagram: true,
+    tiktok: true
+  });
 
   const isValidKWUrl = (url: string) => {
     try {
@@ -290,7 +298,83 @@ export default function PropertyProcessor() {
                     disabled={processing}
                   />
                 </div>
-                <Button 
+
+                {/* Publication Type */}
+                <div className="space-y-3">
+                  <Label>Tipo de publicación</Label>
+                  <RadioGroup 
+                    value={publicationType} 
+                    onValueChange={setPublicationType}
+                    disabled={processing}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="en-venta" id="en-venta" />
+                      <Label htmlFor="en-venta" className="font-normal cursor-pointer">
+                        En venta
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="open-house" id="open-house" />
+                      <Label htmlFor="open-house" className="font-normal cursor-pointer">
+                        Open House
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="vendida" id="vendida" />
+                      <Label htmlFor="vendida" className="font-normal cursor-pointer">
+                        Vendida
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Social Media Platforms */}
+                <div className="space-y-3">
+                  <Label>Redes sociales</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="facebook"
+                        checked={selectedPlatforms.facebook}
+                        onCheckedChange={(checked) => 
+                          setSelectedPlatforms(prev => ({ ...prev, facebook: checked as boolean }))
+                        }
+                        disabled={processing}
+                      />
+                      <Label htmlFor="facebook" className="font-normal cursor-pointer">
+                        Facebook
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="instagram"
+                        checked={selectedPlatforms.instagram}
+                        onCheckedChange={(checked) => 
+                          setSelectedPlatforms(prev => ({ ...prev, instagram: checked as boolean }))
+                        }
+                        disabled={processing}
+                      />
+                      <Label htmlFor="instagram" className="font-normal cursor-pointer">
+                        Instagram
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="tiktok"
+                        checked={selectedPlatforms.tiktok}
+                        onCheckedChange={(checked) => 
+                          setSelectedPlatforms(prev => ({ ...prev, tiktok: checked as boolean }))
+                        }
+                        disabled={processing}
+                      />
+                      <Label htmlFor="tiktok" className="font-normal cursor-pointer">
+                        TikTok
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
                   onClick={handleProcess}
                   disabled={!url.trim() || processing}
                   className="w-full bg-gradient-hero hover:shadow-glow transition-all duration-300"
