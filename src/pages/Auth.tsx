@@ -123,8 +123,10 @@ export default function Auth() {
             Volver al inicio
           </Link>
           <div className="flex items-center justify-center gap-2">
-            <Building className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">KW Content Pro</h1>
+            <div className="bg-primary px-3 py-2 rounded-lg">
+              <span className="text-xl font-bold text-primary-foreground">KW</span>
+            </div>
+            <h1 className="text-2xl font-bold">PropGen</h1>
           </div>
           <p className="text-muted-foreground">
             Transforma tus listados en contenido viral

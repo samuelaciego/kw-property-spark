@@ -119,17 +119,29 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Credits Section */}
+        {/* Properties Section */}
         {!isCollapsed && (
           <div className="px-4 py-4 border-t border-border">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Propiedades</span>
-                <span className="text-xs text-muted-foreground">
-                  {creditsRemaining} restantes
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-foreground">Propiedades</span>
+                  <span className="text-xs text-muted-foreground">
+                    {creditsRemaining} restantes
+                  </span>
+                </div>
+                <Progress value={usagePercentage} className="h-1" />
               </div>
-              <Progress value={usagePercentage} className="h-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                asChild
+              >
+                <Link to="/plans">
+                  Convertirse en afiliado
+                </Link>
+              </Button>
             </div>
           </div>
         )}
