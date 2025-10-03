@@ -28,11 +28,15 @@ import {
 } from "lucide-react";
 
 interface PropertyData {
+  id?: string;
   title: string;
   description: string;
   price: string;
   address: string;
   images: string[];
+  facebook_content?: string;
+  instagram_content?: string;
+  tiktok_content?: string;
   agent: {
     name: string;
     phone: string;
@@ -47,12 +51,6 @@ export default function PropertyProcessor() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [propertyData, setPropertyData] = useState<PropertyData | null>(null);
-  const [generatedContent, setGeneratedContent] = useState<{
-    socialText: string;
-    hashtags: string[];
-    images: string[];
-    videoUrl?: string;
-  } | null>(null);
 
   const isValidKWUrl = (url: string) => {
     try {
@@ -165,22 +163,33 @@ export default function PropertyProcessor() {
       setProgress(60);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Step 4: Generate content
+      // Step 4: Generate AI content for all platforms
       setProgress(80);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const propertyForAI = {
+        title: extractedData.title,
+        description: extractedData.description,
+        price: extractedData.price,
+        address: extractedData.address
+      };
+
+      // Generate content for all three platforms in parallel
+      const [facebookResult, instagramResult, tiktokResult] = await Promise.all([
+        supabase.functions.invoke('generate-social-content', {
+          body: { platform: 'facebook', propertyData: propertyForAI }
+        }),
+        supabase.functions.invoke('generate-social-content', {
+          body: { platform: 'instagram', propertyData: propertyForAI }
+        }),
+        supabase.functions.invoke('generate-social-content', {
+          body: { platform: 'tiktok', propertyData: propertyForAI }
+        })
+      ]);
 
       // Step 5: Finalize
       setProgress(100);
-      
-      // Generate social media content based on extracted data
-      const generatedContent = {
-        socialText: `🏡 ¡NUEVA PROPIEDAD DISPONIBLE! ${extractedData.title} te espera con características increíbles. ${extractedData.description.substring(0, 100)}... ¡No dejes pasar esta oportunidad única!`,
-        hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices", "#PropiedadDeLujo", "#Oportunidad"],
-        images: extractedData.images.slice(0, 2), // Use first 2 extracted images
-        videoUrl: "/api/placeholder/video"
-      };
 
-      // Save to database
+      // Save to database with AI-generated content
       const newProperty = {
         user_id: profile.user_id,
         url,
@@ -191,12 +200,22 @@ export default function PropertyProcessor() {
         agent_name: profile.full_name || "Agente",
         agent_phone: (profile as any).phone || "",
         images: extractedData.images || [],
-        social_content: generatedContent.socialText,
-        hashtags: generatedContent.hashtags,
+        facebook_content: facebookResult.data?.generatedContent || null,
+        instagram_content: instagramResult.data?.generatedContent || null,
+        tiktok_content: tiktokResult.data?.generatedContent || null,
+        hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices"],
         status: "processed"
       };
 
-      await supabase.from('properties').insert([newProperty]);
+      const { data: insertedProperty, error: insertError } = await supabase
+        .from('properties')
+        .insert([newProperty])
+        .select()
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
       
       // Update user usage count
       await supabase
@@ -205,7 +224,15 @@ export default function PropertyProcessor() {
         .eq('user_id', profile.user_id);
       
       await refreshProfile();
-      setGeneratedContent(generatedContent);
+
+      // Set property data with the inserted property ID
+      setPropertyData({
+        ...extractedData,
+        id: insertedProperty.id,
+        facebook_content: insertedProperty.facebook_content,
+        instagram_content: insertedProperty.instagram_content,
+        tiktok_content: insertedProperty.tiktok_content
+      });
 
       toast({
         title: "¡Propiedad procesada!",
@@ -302,14 +329,16 @@ export default function PropertyProcessor() {
             {propertyData && profile && (
               <SocialMediaPublisher 
                 propertyData={{
-                  id: url, // Using URL as temp ID since we don't have the actual DB ID
+                  id: propertyData.id || url,
                   title: propertyData.title,
                   description: propertyData.description,
                   price: propertyData.price,
                   address: propertyData.address,
                   images: propertyData.images,
-                  social_content: generatedContent?.socialText || '',
-                  hashtags: generatedContent?.hashtags || [],
+                  facebook_content: propertyData.facebook_content || '',
+                  instagram_content: propertyData.instagram_content || '',
+                  tiktok_content: propertyData.tiktok_content || '',
+                  hashtags: [],
                   agent_name: profile?.full_name || null,
                   agent_phone: (profile as any)?.phone || null
                 }} 

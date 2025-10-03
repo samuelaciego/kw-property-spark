@@ -135,16 +135,18 @@ export type Database = {
           agent_phone: string | null
           created_at: string
           description: string | null
+          facebook_content: string | null
           facebook_post_id: string | null
           facebook_published_at: string | null
           hashtags: string[] | null
           id: string
           images: string[] | null
+          instagram_content: string | null
           instagram_post_id: string | null
           instagram_published_at: string | null
           price: string | null
-          social_content: string | null
           status: string | null
+          tiktok_content: string | null
           tiktok_published_at: string | null
           tiktok_video_id: string | null
           title: string | null
@@ -159,16 +161,18 @@ export type Database = {
           agent_phone?: string | null
           created_at?: string
           description?: string | null
+          facebook_content?: string | null
           facebook_post_id?: string | null
           facebook_published_at?: string | null
           hashtags?: string[] | null
           id?: string
           images?: string[] | null
+          instagram_content?: string | null
           instagram_post_id?: string | null
           instagram_published_at?: string | null
           price?: string | null
-          social_content?: string | null
           status?: string | null
+          tiktok_content?: string | null
           tiktok_published_at?: string | null
           tiktok_video_id?: string | null
           title?: string | null
@@ -183,16 +187,18 @@ export type Database = {
           agent_phone?: string | null
           created_at?: string
           description?: string | null
+          facebook_content?: string | null
           facebook_post_id?: string | null
           facebook_published_at?: string | null
           hashtags?: string[] | null
           id?: string
           images?: string[] | null
+          instagram_content?: string | null
           instagram_post_id?: string | null
           instagram_published_at?: string | null
           price?: string | null
-          social_content?: string | null
           status?: string | null
+          tiktok_content?: string | null
           tiktok_published_at?: string | null
           tiktok_video_id?: string | null
           title?: string | null

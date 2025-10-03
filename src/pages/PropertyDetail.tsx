@@ -18,7 +18,9 @@ interface Property {
   created_at: string;
   images: string[] | null;
   views: number | null;
-  social_content: string | null;
+  facebook_content: string | null;
+  instagram_content: string | null;
+  tiktok_content: string | null;
   hashtags: string[] | null;
   agent_name: string | null;
   agent_phone: string | null;
@@ -165,13 +167,6 @@ const PropertyDetail = () => {
                   </div>}
               </div>
             </div>
-
-            {property.social_content && <div>
-                <h3 className="text-lg font-semibold mb-2">Contenido para Redes Sociales</h3>
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="whitespace-pre-wrap">{property.social_content}</p>
-                </div>
-              </div>}
 
             {property.hashtags && property.hashtags.length > 0 && <div>
                 <h3 className="text-lg font-semibold mb-2">Hashtags</h3>

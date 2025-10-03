@@ -24,9 +24,9 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
   profile 
 }) => {
   const [customCaptions, setCustomCaptions] = useState({
-    facebook: '',
-    instagram: '',
-    tiktok: ''
+    facebook: propertyData.facebook_content || '',
+    instagram: propertyData.instagram_content || '',
+    tiktok: propertyData.tiktok_content || ''
   });
 
   const [publishing, setPublishing] = useState({
@@ -48,24 +48,12 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
   }>({});
 
   const [contentGenerated, setContentGenerated] = useState({
-    facebook: false,
-    instagram: false,
-    tiktok: false
+    facebook: !!propertyData.facebook_content,
+    instagram: !!propertyData.instagram_content,
+    tiktok: !!propertyData.tiktok_content
   });
 
   const { toast } = useToast();
-
-  // Auto-generate content when component mounts - one call per platform
-  useEffect(() => {
-    if (propertyData) {
-      const platforms = ['facebook', 'instagram', 'tiktok'] as const;
-      platforms.forEach(platform => {
-        if (!contentGenerated[platform]) {
-          generateWithAI(platform);
-        }
-      });
-    }
-  }, [propertyData]);
 
   const generateWithAI = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
     // Don't generate if already generated for this platform
