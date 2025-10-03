@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { z } from 'zod';
 
 interface Profile {
   id: string;
@@ -29,6 +30,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
+
+// Validation schemas
+const emailSchema = z.string().trim().email({ message: "Email inválido" }).max(255, { message: "Email debe tener menos de 255 caracteres" });
+const passwordSchema = z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres" }).max(100, { message: "La contraseña debe tener menos de 100 caracteres" });
+const fullNameSchema = z.string().trim().min(2, { message: "El nombre debe tener al menos 2 caracteres" }).max(100, { message: "El nombre debe tener menos de 100 caracteres" });
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -124,6 +130,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
+      // Validate inputs
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+      if (fullName) {
+        fullNameSchema.parse(fullName);
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return { error: { message: err.errors[0].message } };
+      }
+      return { error: { message: "Error de validación" } };
+    }
+
+    try {
       console.log('Signing up user:', email);
       
       const { error } = await supabase.auth.signUp({
@@ -149,6 +169,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    try {
+      // Validate inputs
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return { error: { message: err.errors[0].message } };
+      }
+      return { error: { message: "Error de validación" } };
+    }
+
     try {
       console.log('Signing in user:', email);
       
