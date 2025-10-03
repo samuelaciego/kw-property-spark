@@ -235,13 +235,26 @@ export default function PropertyProcessor() {
 
           if (imageError) {
             console.error('Error generating images:', imageError);
+            toast({
+              title: "Error al generar imágenes",
+              description: imageError.message || "No se pudieron generar las imágenes para redes sociales",
+              variant: "destructive",
+            });
           } else if (imageData) {
             imageUrls = imageData;
             console.log('Images generated successfully:', imageUrls);
+            toast({
+              title: "Imágenes generadas",
+              description: "Las imágenes para redes sociales se generaron exitosamente",
+            });
           }
         } catch (err) {
           console.error('Exception generating images:', err);
-          // No bloqueamos el proceso si falla la generación de imágenes
+          toast({
+            title: "Error al generar imágenes",
+            description: err instanceof Error ? err.message : "Error desconocido al generar imágenes",
+            variant: "destructive",
+          });
         }
       } else {
         console.log('Not enough images to generate social media graphics (need at least 3)');
@@ -470,7 +483,81 @@ export default function PropertyProcessor() {
               </CardContent>
             </Card>
 
-            {/* Property Data and Generated Content sections are hidden to show only Social Media Publisher */}
+            {/* Generated Images Preview */}
+            {propertyData && (propertyData.generated_image_facebook || propertyData.generated_image_instagram || propertyData.generated_image_stories) && (
+              <Card className="bg-gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Image className="h-5 w-5 mr-2" />
+                    Imágenes Generadas
+                  </CardTitle>
+                  <CardDescription>
+                    Imágenes optimizadas para cada red social
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {propertyData.generated_image_facebook && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Facebook (1200x630)</Label>
+                        <img 
+                          src={propertyData.generated_image_facebook} 
+                          alt="Facebook" 
+                          className="w-full rounded-lg border border-border"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.open(propertyData.generated_image_facebook, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar
+                        </Button>
+                      </div>
+                    )}
+                    {propertyData.generated_image_instagram && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Instagram Post (1080x1080)</Label>
+                        <img 
+                          src={propertyData.generated_image_instagram} 
+                          alt="Instagram" 
+                          className="w-full rounded-lg border border-border"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.open(propertyData.generated_image_instagram, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar
+                        </Button>
+                      </div>
+                    )}
+                    {propertyData.generated_image_stories && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Instagram Stories (1080x1920)</Label>
+                        <img 
+                          src={propertyData.generated_image_stories} 
+                          alt="Stories" 
+                          className="w-full rounded-lg border border-border"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.open(propertyData.generated_image_stories, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Social Media Publisher */}
             {propertyData && profile && (

@@ -19,10 +19,10 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY no configurada');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY no configurada');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -100,88 +100,68 @@ DIMENSIONES FINALES: ${format.size}
 El resultado debe ser una imagen ${format.orientation} optimizada para ${format.name}.`;
 
       try {
-        // Prepare images for AI in Gemini format
-        const parts = [
-          { text: prompt }
-        ];
-
-        // Add template image
-        parts.push({
-          inline_data: {
-            mime_type: 'image/png',
-            data: templateBase64
+        // Prepare images for AI
+        const imageContents = [
+          {
+            type: "text",
+            text: prompt
+          },
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:image/png;base64,${templateBase64}`
+            }
           }
-        });
+        ];
 
         // Add property images
         for (let i = 0; i < 3 && i < images.length; i++) {
-          const imageUrl = images[i];
-          
-          // Convert URL to base64 if needed
-          if (imageUrl.startsWith('http')) {
-            const imageResponse = await fetch(imageUrl);
-            const imageBlob = await imageResponse.arrayBuffer();
-            const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBlob)));
-            parts.push({
-              inline_data: {
-                mime_type: 'image/jpeg',
-                data: imageBase64
-              }
-            });
-          } else if (imageUrl.startsWith('data:')) {
-            // Extract base64 from data URL
-            const matches = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-            if (matches) {
-              parts.push({
-                inline_data: {
-                  mime_type: `image/${matches[1]}`,
-                  data: matches[2]
-                }
-              });
+          imageContents.push({
+            type: "image_url",
+            image_url: {
+              url: images[i]
             }
-          }
+          });
         }
 
-        // Call Google Gemini API directly
-        const aiResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${geminiApiKey}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: parts
-              }],
-              generationConfig: {
-                responseModalities: ["image"]
-              }
-            })
-          }
-        );
+        // Call Lovable AI Gateway
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image-preview",
+            messages: [{
+              role: "user",
+              content: imageContents
+            }],
+            modalities: ["image", "text"]
+          })
+        });
 
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
-          console.error(`AI Gateway error for ${format.name}:`, aiResponse.status, errorText);
-          throw new Error(`Error al generar imagen ${format.name}`);
+          console.error(`Lovable AI error for ${format.name}:`, aiResponse.status, errorText);
+          
+          if (aiResponse.status === 429) {
+            throw new Error('Límite de uso excedido. Verifica tu plan de Lovable AI.');
+          }
+          if (aiResponse.status === 402) {
+            throw new Error('Fondos insuficientes. Añade créditos en Settings -> Workspace -> Usage.');
+          }
+          
+          throw new Error(`Error al generar imagen ${format.name}: ${aiResponse.status}`);
         }
 
         const aiData = await aiResponse.json();
-        
-        // Extract image from Gemini response
-        const imagePart = aiData.candidates?.[0]?.content?.parts?.find(
-          (part: any) => part.inline_data
-        );
+        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-        if (!imagePart?.inline_data?.data) {
-          console.error('Gemini response:', JSON.stringify(aiData, null, 2));
+        if (!generatedImageUrl) {
+          console.error('Lovable AI response:', JSON.stringify(aiData, null, 2));
           throw new Error(`No se generó imagen para ${format.name}`);
         }
-
-        // Reconstruct base64 data URL
-        const mimeType = imagePart.inline_data.mime_type || 'image/png';
-        const generatedImageUrl = `data:${mimeType};base64,${imagePart.inline_data.data}`;
 
         console.log(`${format.name} image generated successfully`);
 
