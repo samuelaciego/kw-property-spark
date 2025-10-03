@@ -43,6 +43,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agency_logo_url: string | null
           avatar_url: string | null
           city: string | null
           company: string | null
@@ -71,6 +72,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agency_logo_url?: string | null
           avatar_url?: string | null
           city?: string | null
           company?: string | null
@@ -99,6 +101,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agency_logo_url?: string | null
           avatar_url?: string | null
           city?: string | null
           company?: string | null

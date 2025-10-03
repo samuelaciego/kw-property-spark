@@ -51,18 +51,16 @@ serve(async (req) => {
 
     // Prepare template data
     const templateData = {
-      property_image_1: property.images?.[0] || '',
-      property_image_2: property.images?.[1] || '',
-      property_image_3: property.images?.[2] || '',
+      property_image_1: { image_url: property.images?.[0] || '' },
+      property_image_2: { image_url: property.images?.[1] || '' },
+      property_image_3: { image_url: property.images?.[2] || '' },
       price: property.price || 'N/A',
       address: property.address || '',
-      beds: '3', // Extract from description if available
-      baths: '2', // Extract from description if available
-      agent_photo: profile?.user_avatar_url || profile?.avatar_url || '',
-      agent_name: property.agent_name || profile?.full_name || '',
-      agent_phone: property.agent_phone || profile?.phone || '',
+      agent_photo: { image_url: profile?.user_avatar_url || profile?.avatar_url || '' },
+      agent_name: profile?.full_name || property.agent_name || '',
+      agent_phone: profile?.phone || property.agent_phone || '',
       agent_email: profile?.email || '',
-      agency_logo: '' // Add agency logo URL if available
+      agency_logo: { image_url: profile?.agency_logo_url || '' }
     };
 
     console.log('Generating images with Templated.io:', templateData);
