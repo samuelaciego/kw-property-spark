@@ -49,19 +49,21 @@ serve(async (req) => {
       facebook: '247ff9ee-e498-40d6-bb1b-d2ed15615c4a'
     };
 
-    // Prepare template data
+    // Prepare template data - images as direct URLs
     const templateData = {
-      property_image_1: { image_url: property.images?.[0] || '' },
-      property_image_2: { image_url: property.images?.[1] || '' },
-      property_image_3: { image_url: property.images?.[2] || '' },
+      property_image_1: property.images?.[0] || '',
+      property_image_2: property.images?.[1] || '',
+      property_image_3: property.images?.[2] || '',
       price: property.price || 'N/A',
       address: property.address || '',
-      agent_photo: { image_url: profile?.user_avatar_url || profile?.avatar_url || '' },
+      agent_photo: profile?.user_avatar_url || profile?.avatar_url || '',
       agent_name: profile?.full_name || property.agent_name || '',
       agent_phone: profile?.phone || property.agent_phone || '',
       agent_email: profile?.email || '',
-      agency_logo: { image_url: profile?.agency_logo_url || '' }
+      agency_logo: profile?.agency_logo_url || ''
     };
+
+    console.log('Template data prepared:', templateData);
 
     console.log('Generating images with Templated.io:', templateData);
 
