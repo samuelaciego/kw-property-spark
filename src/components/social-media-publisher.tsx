@@ -114,10 +114,15 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
     setPublishing(prev => ({ ...prev, facebook: true }));
 
     try {
+      // Use generated image if available, otherwise use property images
+      const imageToUse = propertyData.generated_image_facebook 
+        ? [propertyData.generated_image_facebook]
+        : propertyData.images;
+
       const { data, error } = await supabase.functions.invoke('publish-facebook', {
         body: {
           propertyId: propertyData.id,
-          imageUrls: propertyData.images,
+          imageUrls: imageToUse,
           caption: customCaptions.facebook,
           hashtags: propertyData.hashtags || []
         }
@@ -162,10 +167,15 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
     setPublishing(prev => ({ ...prev, instagram: true }));
 
     try {
+      // Use generated image if available, otherwise use property images
+      const imageToUse = propertyData.generated_image_instagram 
+        ? [propertyData.generated_image_instagram]
+        : propertyData.images;
+
       const { data, error } = await supabase.functions.invoke('publish-instagram', {
         body: {
           propertyId: propertyData.id,
-          imageUrls: propertyData.images,
+          imageUrls: imageToUse,
           caption: customCaptions.instagram,
           hashtags: propertyData.hashtags || []
         }

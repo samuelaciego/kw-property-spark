@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/layout/app-layout";
 import { SocialMediaPublisher } from "@/components/social-media-publisher";
+import { GeneratedImagesPreview } from "@/components/generated-images-preview";
 import { 
   Link, 
   Loader2, 
@@ -39,6 +40,9 @@ interface PropertyData {
   facebook_content?: string;
   instagram_content?: string;
   tiktok_content?: string;
+  generated_image_instagram?: string;
+  generated_image_stories?: string;
+  generated_image_facebook?: string;
   agent: {
     name: string;
     phone: string;
@@ -59,6 +63,12 @@ export default function PropertyProcessor() {
     instagram: true,
     tiktok: true
   });
+  const [generatingImages, setGeneratingImages] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<{
+    instagram?: string;
+    stories?: string;
+    facebook?: string;
+  }>({});
 
   const isValidKWUrl = (url: string) => {
     try {
@@ -239,7 +249,10 @@ export default function PropertyProcessor() {
         id: insertedProperty.id,
         facebook_content: insertedProperty.facebook_content,
         instagram_content: insertedProperty.instagram_content,
-        tiktok_content: insertedProperty.tiktok_content
+        tiktok_content: insertedProperty.tiktok_content,
+        generated_image_instagram: insertedProperty.generated_image_instagram,
+        generated_image_stories: insertedProperty.generated_image_stories,
+        generated_image_facebook: insertedProperty.generated_image_facebook
       });
 
       toast({
@@ -258,6 +271,51 @@ export default function PropertyProcessor() {
     }
 
     setProcessing(false);
+  };
+
+  const handleGenerateImages = async () => {
+    if (!propertyData?.id) {
+      toast({
+        title: "Error",
+        description: "No hay una propiedad procesada para generar imágenes.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setGeneratingImages(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-templated-images', {
+        body: { propertyId: propertyData.id }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setGeneratedImages(data.images);
+        setPropertyData(prev => prev ? {
+          ...prev,
+          generated_image_instagram: data.images.instagram,
+          generated_image_stories: data.images.stories,
+          generated_image_facebook: data.images.facebook
+        } : null);
+
+        toast({
+          title: "¡Imágenes generadas!",
+          description: "Las imágenes profesionales han sido creadas exitosamente."
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating images:', error);
+      toast({
+        title: "Error al generar imágenes",
+        description: error.message || "No se pudieron generar las imágenes con Templated.io",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingImages(false);
+    }
   };
 
   return (
@@ -407,7 +465,53 @@ export default function PropertyProcessor() {
               </CardContent>
             </Card>
 
-            {/* Property Data and Generated Content sections are hidden to show only Social Media Publisher */}
+            {/* Generate Images Section */}
+            {propertyData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Generar Imágenes Profesionales
+                  </CardTitle>
+                  <CardDescription>
+                    Crea imágenes optimizadas para cada red social usando Templated.io
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button
+                    onClick={handleGenerateImages}
+                    disabled={generatingImages}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {generatingImages ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generando imágenes...
+                      </>
+                    ) : (
+                      <>
+                        <Image className="h-4 w-4 mr-2" />
+                        Generar Imágenes para Redes Sociales
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Generated Images Preview */}
+            {propertyData && (generatedImages.instagram || propertyData.generated_image_instagram) && (
+              <GeneratedImagesPreview
+                images={{
+                  instagram: generatedImages.instagram || propertyData.generated_image_instagram,
+                  stories: generatedImages.stories || propertyData.generated_image_stories,
+                  facebook: generatedImages.facebook || propertyData.generated_image_facebook
+                }}
+                onRegenerate={handleGenerateImages}
+                isGenerating={generatingImages}
+              />
+            )}
 
             {/* Social Media Publisher */}
             {propertyData && profile && (
