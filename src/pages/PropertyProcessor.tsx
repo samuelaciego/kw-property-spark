@@ -243,17 +243,41 @@ export default function PropertyProcessor() {
       
       await refreshProfile();
 
-      // Set property data with the inserted property ID
-      setPropertyData({
-        ...extractedData,
-        id: insertedProperty.id,
-        facebook_content: insertedProperty.facebook_content,
-        instagram_content: insertedProperty.instagram_content,
-        tiktok_content: insertedProperty.tiktok_content,
-        generated_image_instagram: insertedProperty.generated_image_instagram,
-        generated_image_stories: insertedProperty.generated_image_stories,
-        generated_image_facebook: insertedProperty.generated_image_facebook
-      });
+      // Generate templated images automatically
+      try {
+        const { data: imagesData, error: imagesError } = await supabase.functions.invoke('generate-templated-images', {
+          body: { propertyId: insertedProperty.id }
+        });
+
+        if (!imagesError && imagesData.success) {
+          setGeneratedImages(imagesData.images);
+          
+          // Set property data with all the data including generated images
+          setPropertyData({
+            ...extractedData,
+            id: insertedProperty.id,
+            facebook_content: insertedProperty.facebook_content,
+            instagram_content: insertedProperty.instagram_content,
+            tiktok_content: insertedProperty.tiktok_content,
+            generated_image_instagram: imagesData.images.instagram,
+            generated_image_stories: imagesData.images.stories,
+            generated_image_facebook: imagesData.images.facebook
+          });
+        }
+      } catch (imgError) {
+        console.error('Error generating images:', imgError);
+        // Still set property data even if image generation fails
+        setPropertyData({
+          ...extractedData,
+          id: insertedProperty.id,
+          facebook_content: insertedProperty.facebook_content,
+          instagram_content: insertedProperty.instagram_content,
+          tiktok_content: insertedProperty.tiktok_content,
+          generated_image_instagram: insertedProperty.generated_image_instagram,
+          generated_image_stories: insertedProperty.generated_image_stories,
+          generated_image_facebook: insertedProperty.generated_image_facebook
+        });
+      }
 
       toast({
         title: "¡Propiedad procesada!",
@@ -458,59 +482,37 @@ export default function PropertyProcessor() {
                       {progress >= 20 && progress < 40 && "Extrayendo datos..."}
                       {progress >= 40 && progress < 60 && "Analizando imágenes..."}
                       {progress >= 60 && progress < 80 && "Generando contenido..."}
-                      {progress >= 80 && "Finalizando proceso..."}
+                      {progress >= 80 && "Generando imágenes profesionales..."}
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Generate Images Section */}
-            {propertyData && (
+            {/* Generated Images Preview */}
+            {propertyData && (generatedImages.instagram || propertyData.generated_image_instagram) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5" />
-                    Generar Imágenes Profesionales
+                    Imágenes Profesionales
                   </CardTitle>
                   <CardDescription>
-                    Crea imágenes optimizadas para cada red social usando Templated.io
+                    Imágenes optimizadas para cada red social
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button
-                    onClick={handleGenerateImages}
-                    disabled={generatingImages}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    {generatingImages ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generando imágenes...
-                      </>
-                    ) : (
-                      <>
-                        <Image className="h-4 w-4 mr-2" />
-                        Generar Imágenes para Redes Sociales
-                      </>
-                    )}
-                  </Button>
+                <CardContent>
+                  <GeneratedImagesPreview
+                    images={{
+                      instagram: generatedImages.instagram || propertyData.generated_image_instagram,
+                      stories: generatedImages.stories || propertyData.generated_image_stories,
+                      facebook: generatedImages.facebook || propertyData.generated_image_facebook
+                    }}
+                    onRegenerate={handleGenerateImages}
+                    isGenerating={generatingImages}
+                  />
                 </CardContent>
               </Card>
-            )}
-
-            {/* Generated Images Preview */}
-            {propertyData && (generatedImages.instagram || propertyData.generated_image_instagram) && (
-              <GeneratedImagesPreview
-                images={{
-                  instagram: generatedImages.instagram || propertyData.generated_image_instagram,
-                  stories: generatedImages.stories || propertyData.generated_image_stories,
-                  facebook: generatedImages.facebook || propertyData.generated_image_facebook
-                }}
-                onRegenerate={handleGenerateImages}
-                isGenerating={generatingImages}
-              />
             )}
 
             {/* Social Media Publisher */}
