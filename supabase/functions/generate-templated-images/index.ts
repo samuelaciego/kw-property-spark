@@ -24,14 +24,23 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get property and profile data
+    // Get property data
     const { data: property, error: propertyError } = await supabase
       .from('properties')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('id', propertyId)
       .single();
 
     if (propertyError) throw propertyError;
+
+    // Get profile data
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', property.user_id)
+      .single();
+
+    if (profileError) console.warn('Profile not found:', profileError);
 
     // Template IDs from Templated.io
     const TEMPLATES = {
@@ -49,10 +58,10 @@ serve(async (req) => {
       address: property.address || '',
       beds: '3', // Extract from description if available
       baths: '2', // Extract from description if available
-      agent_photo: property.profiles?.user_avatar_url || property.profiles?.avatar_url || '',
-      agent_name: property.agent_name || property.profiles?.full_name || '',
-      agent_phone: property.agent_phone || property.profiles?.phone || '',
-      agent_email: property.profiles?.email || '',
+      agent_photo: profile?.user_avatar_url || profile?.avatar_url || '',
+      agent_name: property.agent_name || profile?.full_name || '',
+      agent_phone: property.agent_phone || profile?.phone || '',
+      agent_email: profile?.email || '',
       agency_logo: '' // Add agency logo URL if available
     };
 
