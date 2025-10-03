@@ -17,15 +17,63 @@ Deno.serve(async (req) => {
     const action = url.searchParams.get('action')
 
     if (action === 'get_auth_url') {
+      const userId = url.searchParams.get('user_id');
+      
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'User ID is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      )
+
+      // Verify user is authenticated and matches the userId
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user || user.id !== userId) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const redirectUri = `${url.origin}/supabase/functions/oauth-facebook?action=callback`
       const scope = 'pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish'
+      const csrfState = crypto.randomUUID()
+      
+      // Store CSRF state
+      const stateExpiry = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      const supabaseService = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      await supabaseService.from('oauth_states').insert({
+        state: csrfState,
+        user_id: userId,
+        provider: 'facebook',
+        expires_at: stateExpiry
+      });
       
       const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
         `client_id=${FACEBOOK_APP_ID}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `scope=${encodeURIComponent(scope)}&` +
         `response_type=code&` +
-        `state=${url.searchParams.get('user_id')}`
+        `state=${csrfState}`
 
       return new Response(JSON.stringify({ authUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -34,11 +82,54 @@ Deno.serve(async (req) => {
 
     if (action === 'callback') {
       const code = url.searchParams.get('code')
-      const userId = url.searchParams.get('state')
+      const state = url.searchParams.get('state')
       
-      if (!code || !userId) {
-        throw new Error('Missing authorization code or user ID')
+      if (!code || !state) {
+        throw new Error('Missing authorization code or state')
       }
+
+      // Validate CSRF state token
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const supabaseService = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+
+      const { data: stateData, error: stateError } = await supabaseService
+        .from('oauth_states')
+        .select('user_id, expires_at')
+        .eq('state', state)
+        .eq('provider', 'facebook')
+        .single();
+
+      if (stateError || !stateData) {
+        console.error('Invalid OAuth state:', stateError);
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/profile?error=invalid_state`
+          }
+        });
+      }
+
+      // Check if state has expired
+      if (new Date(stateData.expires_at) < new Date()) {
+        console.error('OAuth state expired');
+        await supabaseService.from('oauth_states').delete().eq('state', state);
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': `${Deno.env.get('SITE_URL') || 'http://localhost:5173'}/profile?error=state_expired`
+          }
+        });
+      }
+
+      const userId = stateData.user_id;
+
+      // Delete used state token
+      await supabaseService.from('oauth_states').delete().eq('state', state);
 
       // Exchange code for access token
       const redirectUri = `${url.origin}/supabase/functions/oauth-facebook?action=callback`
@@ -86,14 +177,8 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Store tokens in user's profile
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      )
-
-      await supabase
+      // Store tokens in user's profile (supabaseService already created above)
+      await supabaseService
         .from('profiles')
         .update({
           facebook_connected: true,
@@ -122,7 +207,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Facebook OAuth error:', error)
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    // Return generic error message to client, log details server-side
+    return new Response(JSON.stringify({ error: 'OAuth connection failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

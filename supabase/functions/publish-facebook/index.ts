@@ -121,7 +121,9 @@ Deno.serve(async (req) => {
     }
     
     if (publishData.error) {
-      throw new Error(`Facebook API error: ${publishData.error.message}`)
+      console.error('Facebook API error:', publishData.error);
+      // Return generic error message to client
+      throw new Error('Failed to publish to Facebook');
     }
 
     console.log('Facebook post published successfully:', publishData.id)
@@ -145,7 +147,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Facebook publish error:', error)
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    // Return generic error message to client, log details server-side
+    return new Response(JSON.stringify({ error: 'Failed to publish content' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

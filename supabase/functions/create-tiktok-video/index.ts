@@ -75,7 +75,9 @@ Deno.serve(async (req) => {
     const initData = await initResponse.json()
     
     if (initData.error) {
-      throw new Error(`TikTok init error: ${initData.error.message}`)
+      console.error('TikTok API error:', initData.error);
+      // Return generic error message to client
+      throw new Error('Failed to create TikTok video');
     }
 
     console.log('TikTok upload session initialized:', initData.data?.publish_id)
@@ -98,7 +100,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('TikTok video creation error:', error)
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    // Return generic error message to client, log details server-side
+    return new Response(JSON.stringify({ error: 'Failed to create video' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

@@ -59,7 +59,9 @@ Deno.serve(async (req) => {
     const mediaData = await mediaResponse.json()
     
     if (mediaData.error) {
-      throw new Error(`Instagram API error: ${mediaData.error.message}`)
+      console.error('Instagram API error creating container:', mediaData.error);
+      // Return generic error message to client
+      throw new Error('Failed to publish to Instagram');
     }
 
     // Step 2: Publish media container
@@ -78,7 +80,9 @@ Deno.serve(async (req) => {
     const publishData = await publishResponse.json()
     
     if (publishData.error) {
-      throw new Error(`Instagram publish error: ${publishData.error.message}`)
+      console.error('Instagram API error publishing:', publishData.error);
+      // Return generic error message to client
+      throw new Error('Failed to publish to Instagram');
     }
 
     console.log('Instagram post published successfully:', publishData.id)
@@ -102,7 +106,8 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Instagram publish error:', error)
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    // Return generic error message to client, log details server-side
+    return new Response(JSON.stringify({ error: 'Failed to publish content' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

@@ -46,6 +46,39 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Server-side URL validation to prevent SSRF attacks
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid URL format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Only allow HTTPS protocol
+    if (parsedUrl.protocol !== 'https:') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Only HTTPS URLs are allowed' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Whitelist of allowed domains (Keller Williams only)
+    const allowedDomains = ['kw.com'];
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isAllowed = allowedDomains.some(domain => 
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+
+    if (!isAllowed) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Only Keller Williams URLs are supported' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Extracting property data from:', url);
 
     // Fetch the webpage with enhanced headers and error handling
@@ -131,11 +164,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error extracting property data:', error);
+    // Return generic error message to client, log details server-side
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: 'Error interno del servidor', 
-        details: (error as Error).message 
+        error: 'Failed to extract property data'
       }),
       { 
         status: 500, 
