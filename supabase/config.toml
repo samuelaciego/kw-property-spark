@@ -1,10 +1,7 @@
 project_id = "vtkphubycpmygsvhtuvp"
 
 [functions.extract-property]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-social-content]
-verify_jwt = true
-
-[functions.generate-property-images]
 verify_jwt = true

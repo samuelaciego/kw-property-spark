@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Facebook, Instagram, Video, ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -55,13 +54,6 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
   });
 
   const { toast } = useToast();
-
-  // Get generated image URLs
-  const generatedImages = {
-    facebook: propertyData.generated_image_facebook,
-    instagram: propertyData.generated_image_instagram,
-    stories: propertyData.generated_image_stories
-  };
 
   const generateWithAI = async (platform: 'facebook' | 'instagram' | 'tiktok') => {
     // Don't generate if already generated for this platform
@@ -298,26 +290,6 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
           </div>
           
           <div className="space-y-3">
-            {generatedImages.facebook && (
-              <div className="mb-4">
-                <Label className="mb-2">Imagen generada para Facebook:</Label>
-                <img 
-                  src={generatedImages.facebook} 
-                  alt="Preview Facebook"
-                  className="w-full rounded-lg border mt-2"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => window.open(generatedImages.facebook, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Ver en tamaño completo
-                </Button>
-              </div>
-            )}
-            
             {generatingAI.facebook ? (
               <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
                 <div className="text-center">
@@ -389,50 +361,6 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
           </div>
           
           <div className="space-y-3">
-            {(generatedImages.instagram || generatedImages.stories) && (
-              <div className="mb-4 space-y-4">
-                {generatedImages.instagram && (
-                  <div>
-                    <Label className="mb-2">Imagen para Instagram Post:</Label>
-                    <img 
-                      src={generatedImages.instagram} 
-                      alt="Preview Instagram Post"
-                      className="w-full rounded-lg border mt-2"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => window.open(generatedImages.instagram, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Ver Post en tamaño completo
-                    </Button>
-                  </div>
-                )}
-                
-                {generatedImages.stories && (
-                  <div>
-                    <Label className="mb-2">Imagen para Instagram Stories:</Label>
-                    <img 
-                      src={generatedImages.stories} 
-                      alt="Preview Instagram Stories"
-                      className="w-full max-w-xs rounded-lg border mt-2"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => window.open(generatedImages.stories, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Ver Stories en tamaño completo
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            
             {generatingAI.instagram ? (
               <div className="flex items-center justify-center p-8 border border-dashed rounded-lg">
                 <div className="text-center">

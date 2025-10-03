@@ -25,23 +25,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.log('No authorization header provided');
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'No autorizado' 
-        }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    console.log('Processing authenticated request...');
+    console.log('Processing request...');
     
     const body = await req.json();
     console.log('Request body:', body);

@@ -39,9 +39,6 @@ interface PropertyData {
   facebook_content?: string;
   instagram_content?: string;
   tiktok_content?: string;
-  generated_image_facebook?: string;
-  generated_image_instagram?: string;
-  generated_image_stories?: string;
   agent: {
     name: string;
     phone: string;
@@ -175,7 +172,7 @@ export default function PropertyProcessor() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Step 4: Generate AI content for all platforms
-      setProgress(70);
+      setProgress(80);
       
       const propertyForAI = {
         title: extractedData.title,
@@ -197,73 +194,8 @@ export default function PropertyProcessor() {
         })
       ]);
 
-      const facebookContent = facebookResult.data?.generatedContent || null;
-      const instagramContent = instagramResult.data?.generatedContent || null;
-      const tiktokContent = tiktokResult.data?.generatedContent || null;
-
-      // Step 5: Generate social media images
-      setProgress(85);
-      console.log('Generating social media images...');
-
-      let imageUrls = {
-        facebook: null,
-        instagram: null,
-        stories: null
-      };
-
-      // Only generate images if we have at least 3 property images
-      if (extractedData.images && extractedData.images.length >= 3) {
-        try {
-          const tempPropertyId = crypto.randomUUID();
-          
-          const { data: imageData, error: imageError } = await supabase.functions.invoke(
-            'generate-property-images',
-            {
-              body: {
-                propertyData: {
-                  price: extractedData.price,
-                  address: extractedData.address,
-                  bedrooms: extractedData.bedrooms || 'N/A',
-                  bathrooms: extractedData.bathrooms || 'N/A',
-                },
-                images: extractedData.images.slice(0, 3),
-                userId: profile.user_id,
-                propertyId: tempPropertyId
-              }
-            }
-          );
-
-          if (imageError) {
-            console.error('Error generating images:', imageError);
-            toast({
-              title: "Error al generar imágenes",
-              description: imageError.message || "No se pudieron generar las imágenes para redes sociales",
-              variant: "destructive",
-            });
-          } else if (imageData) {
-            imageUrls = imageData;
-            console.log('Images generated successfully:', imageUrls);
-            toast({
-              title: "Imágenes generadas",
-              description: "Las imágenes para redes sociales se generaron exitosamente",
-            });
-          }
-        } catch (err) {
-          console.error('Exception generating images:', err);
-          toast({
-            title: "Error al generar imágenes",
-            description: err instanceof Error ? err.message : "Error desconocido al generar imágenes",
-            variant: "destructive",
-          });
-        }
-      } else {
-        console.log('Not enough images to generate social media graphics (need at least 3)');
-      }
-
-      // Step 6: Finalize
+      // Step 5: Finalize
       setProgress(100);
-
-      console.log('Saving to database...');
 
       // Save to database with AI-generated content
       const newProperty = {
@@ -276,12 +208,9 @@ export default function PropertyProcessor() {
         agent_name: profile.full_name || "Agente",
         agent_phone: (profile as any).phone || "",
         images: extractedData.images || [],
-        facebook_content: facebookContent,
-        instagram_content: instagramContent,
-        tiktok_content: tiktokContent,
-        generated_image_facebook: imageUrls.facebook,
-        generated_image_instagram: imageUrls.instagram,
-        generated_image_stories: imageUrls.stories,
+        facebook_content: facebookResult.data?.generatedContent || null,
+        instagram_content: instagramResult.data?.generatedContent || null,
+        tiktok_content: tiktokResult.data?.generatedContent || null,
         hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices"],
         status: "processed"
       };
@@ -310,10 +239,7 @@ export default function PropertyProcessor() {
         id: insertedProperty.id,
         facebook_content: insertedProperty.facebook_content,
         instagram_content: insertedProperty.instagram_content,
-        tiktok_content: insertedProperty.tiktok_content,
-        generated_image_facebook: insertedProperty.generated_image_facebook,
-        generated_image_instagram: insertedProperty.generated_image_instagram,
-        generated_image_stories: insertedProperty.generated_image_stories
+        tiktok_content: insertedProperty.tiktok_content
       });
 
       toast({
@@ -473,91 +399,15 @@ export default function PropertyProcessor() {
                       {progress < 20 && "Validando URL..."}
                       {progress >= 20 && progress < 40 && "Extrayendo datos..."}
                       {progress >= 40 && progress < 60 && "Analizando imágenes..."}
-                      {progress >= 60 && progress < 70 && "Generando contenido..."}
-                      {progress >= 70 && progress < 85 && "Generando contenido AI..."}
-                      {progress >= 85 && progress < 100 && "Generando imágenes para redes sociales..."}
-                      {progress >= 100 && "Finalizando proceso..."}
+                      {progress >= 60 && progress < 80 && "Generando contenido..."}
+                      {progress >= 80 && "Finalizando proceso..."}
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Generated Images Preview */}
-            {propertyData && (propertyData.generated_image_facebook || propertyData.generated_image_instagram || propertyData.generated_image_stories) && (
-              <Card className="bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Image className="h-5 w-5 mr-2" />
-                    Imágenes Generadas
-                  </CardTitle>
-                  <CardDescription>
-                    Imágenes optimizadas para cada red social
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {propertyData.generated_image_facebook && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Facebook (1200x630)</Label>
-                        <img 
-                          src={propertyData.generated_image_facebook} 
-                          alt="Facebook" 
-                          className="w-full rounded-lg border border-border"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.open(propertyData.generated_image_facebook, '_blank')}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Descargar
-                        </Button>
-                      </div>
-                    )}
-                    {propertyData.generated_image_instagram && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Instagram Post (1080x1080)</Label>
-                        <img 
-                          src={propertyData.generated_image_instagram} 
-                          alt="Instagram" 
-                          className="w-full rounded-lg border border-border"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.open(propertyData.generated_image_instagram, '_blank')}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Descargar
-                        </Button>
-                      </div>
-                    )}
-                    {propertyData.generated_image_stories && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Instagram Stories (1080x1920)</Label>
-                        <img 
-                          src={propertyData.generated_image_stories} 
-                          alt="Stories" 
-                          className="w-full rounded-lg border border-border"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.open(propertyData.generated_image_stories, '_blank')}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Descargar
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Property Data and Generated Content sections are hidden to show only Social Media Publisher */}
 
             {/* Social Media Publisher */}
             {propertyData && profile && (
@@ -572,9 +422,6 @@ export default function PropertyProcessor() {
                   facebook_content: propertyData.facebook_content || '',
                   instagram_content: propertyData.instagram_content || '',
                   tiktok_content: propertyData.tiktok_content || '',
-                  generated_image_facebook: propertyData.generated_image_facebook,
-                  generated_image_instagram: propertyData.generated_image_instagram,
-                  generated_image_stories: propertyData.generated_image_stories,
                   hashtags: [],
                   agent_name: profile?.full_name || null,
                   agent_phone: (profile as any)?.phone || null

@@ -138,9 +138,6 @@ export type Database = {
           facebook_content: string | null
           facebook_post_id: string | null
           facebook_published_at: string | null
-          generated_image_facebook: string | null
-          generated_image_instagram: string | null
-          generated_image_stories: string | null
           hashtags: string[] | null
           id: string
           images: string[] | null
@@ -167,9 +164,6 @@ export type Database = {
           facebook_content?: string | null
           facebook_post_id?: string | null
           facebook_published_at?: string | null
-          generated_image_facebook?: string | null
-          generated_image_instagram?: string | null
-          generated_image_stories?: string | null
           hashtags?: string[] | null
           id?: string
           images?: string[] | null
@@ -196,9 +190,6 @@ export type Database = {
           facebook_content?: string | null
           facebook_post_id?: string | null
           facebook_published_at?: string | null
-          generated_image_facebook?: string | null
-          generated_image_instagram?: string | null
-          generated_image_stories?: string | null
           hashtags?: string[] | null
           id?: string
           images?: string[] | null
