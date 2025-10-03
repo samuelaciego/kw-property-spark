@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Building2, LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "lucide-react";
+import { LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
@@ -17,8 +17,8 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-hero p-2 rounded-lg">
-              <Building2 className="h-6 w-6 text-white" />
+            <div className="bg-primary px-3 py-2 rounded-lg">
+              <span className="text-xl font-bold text-primary-foreground">KW</span>
             </div>
             <span className="text-xl font-bold text-foreground">PropGen</span>
           </Link>

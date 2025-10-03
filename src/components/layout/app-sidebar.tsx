@@ -1,11 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  Building2,
   LayoutDashboard,
   Zap,
   User,
   Settings,
-  HelpCircle,
   CreditCard,
   LogOut,
 } from "lucide-react";
@@ -76,8 +74,8 @@ export function AppSidebar() {
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-border p-4">
         <Link to="/dashboard" className="flex items-center space-x-2">
-          <div className="bg-primary p-2 rounded-lg">
-            <Building2 className="h-5 w-5 text-primary-foreground" />
+          <div className="bg-primary px-3 py-2 rounded-lg flex items-center justify-center">
+            <span className="text-xl font-bold text-primary-foreground">KW</span>
           </div>
           {!isCollapsed && (
             <span className="text-lg font-bold text-foreground">PropGen</span>
