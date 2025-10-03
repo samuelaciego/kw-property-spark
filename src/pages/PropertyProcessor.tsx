@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/layout/app-layout";
 import { SocialMediaPublisher } from "@/components/social-media-publisher";
+import { InstagramImageGenerator } from "@/components/instagram-image-generator";
 import { 
   Link, 
   Loader2, 
@@ -39,6 +40,7 @@ interface PropertyData {
   facebook_content?: string;
   instagram_content?: string;
   tiktok_content?: string;
+  generated_image_instagram?: string;
   agent: {
     name: string;
     phone: string;
@@ -408,6 +410,41 @@ export default function PropertyProcessor() {
             </Card>
 
             {/* Property Data and Generated Content sections are hidden to show only Social Media Publisher */}
+
+            {/* Instagram Image Generator */}
+            {propertyData && profile && (
+              <Card className="bg-gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Image className="h-5 w-5 mr-2" />
+                    Imagen para Instagram
+                  </CardTitle>
+                  <CardDescription>
+                    Genera una imagen profesional con tus datos y las imágenes de la propiedad
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <InstagramImageGenerator
+                    propertyData={propertyData}
+                    profile={profile}
+                    onImageGenerated={(imageUrl) => {
+                      setPropertyData({ ...propertyData, generated_image_instagram: imageUrl });
+                      toast({
+                        title: "¡Imagen generada!",
+                        description: "La imagen para Instagram está lista.",
+                      });
+                    }}
+                    onError={(error) => {
+                      toast({
+                        title: "Error",
+                        description: error,
+                        variant: "destructive",
+                      });
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Social Media Publisher */}
             {propertyData && profile && (
