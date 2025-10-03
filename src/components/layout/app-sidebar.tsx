@@ -124,7 +124,7 @@ export function AppSidebar() {
           <div className="px-4 py-4 border-t border-border">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Créditos</span>
+                <span className="text-muted-foreground">Propiedades</span>
                 <span className="text-xs text-muted-foreground">
                   {creditsRemaining} restantes
                 </span>
