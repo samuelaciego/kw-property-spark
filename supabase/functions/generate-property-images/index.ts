@@ -79,25 +79,29 @@ serve(async (req) => {
     for (const format of formats) {
       console.log(`Generating ${format.name} image...`);
 
-      const prompt = `Edita esta plantilla de Keller Williams manteniendo la estructura base:
+      const prompt = `GENERA UNA IMAGEN (no texto) editando esta plantilla de Keller Williams:
 
-MANTENER:
+IMPORTANTE: Tu respuesta DEBE ser una imagen generada, NO texto explicativo.
+
+MANTENER en la imagen generada:
 - Fondo rojo Keller Williams
-- Estructura general de la plantilla con los cuadros negro y azules
+- Estructura de la plantilla con cuadros negro y azules
+- Logos y branding de KW
 
-INSERTAR IMÁGENES (ajustando proporcionalmente a los espacios disponibles):
-1. Foto principal en el cuadro NEGRO grande (lado izquierdo)
-2. Segunda foto en el cuadro AZUL superior derecho
-3. Tercera foto en el cuadro AZUL inferior derecho
+INSERTAR estas 3 imágenes de propiedad en los espacios designados:
+1. Imagen principal → cuadro NEGRO grande (lado izquierdo)
+2. Segunda imagen → cuadro AZUL superior derecho  
+3. Tercera imagen → cuadro AZUL inferior derecho
 
-AGREGAR TEXTO en el área gris (encima de los cuadros azules), con fuente legible y buen contraste:
-• Precio: ${propertyData.price || 'Consultar'}
-• Dirección: ${propertyData.address || 'No disponible'}
-• ${propertyData.bedrooms || 'N/A'} habitaciones
-• ${propertyData.bathrooms || 'N/A'} baños
+AGREGAR TEXTO LEGIBLE sobre la imagen en el área gris:
+Precio: ${propertyData.price || 'Consultar'}
+${propertyData.address || 'Dirección no disponible'}
+${propertyData.bedrooms || 'N/A'} hab • ${propertyData.bathrooms || 'N/A'} baños
 
-DIMENSIONES FINALES: ${format.size}
-El resultado debe ser una imagen ${format.orientation} optimizada para ${format.name}.`;
+FORMATO FINAL: ${format.size} (${format.orientation})
+Optimizado para publicación en ${format.name}.
+
+RECUERDA: Genera la imagen final lista para publicar, no describas lo que harías.`;
 
       try {
         // Prepare images for AI
@@ -124,7 +128,7 @@ El resultado debe ser una imagen ${format.orientation} optimizada para ${format.
           });
         }
 
-        // Call Lovable AI Gateway
+        // Call Lovable AI Gateway - force image output only
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -133,11 +137,17 @@ El resultado debe ser una imagen ${format.orientation} optimizada para ${format.
           },
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-image-preview",
-            messages: [{
-              role: "user",
-              content: imageContents
-            }],
-            modalities: ["image", "text"]
+            messages: [
+              {
+                role: "system",
+                content: "You are an image generation assistant. You MUST always respond with a generated image, never with text explanations. Generate the requested image directly."
+              },
+              {
+                role: "user",
+                content: imageContents
+              }
+            ],
+            modalities: ["image"]  // Only image output, no text
           })
         });
 
@@ -156,11 +166,22 @@ El resultado debe ser una imagen ${format.orientation} optimizada para ${format.
         }
 
         const aiData = await aiResponse.json();
+        
+        // Log full response for debugging
+        console.log(`${format.name} AI response:`, JSON.stringify(aiData, null, 2));
+        
         const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (!generatedImageUrl) {
-          console.error('Lovable AI response:', JSON.stringify(aiData, null, 2));
-          throw new Error(`No se generó imagen para ${format.name}`);
+          // Check if AI returned text instead of image
+          const textContent = aiData.choices?.[0]?.message?.content;
+          if (textContent) {
+            console.error(`${format.name}: AI returned text instead of image:`, textContent);
+            throw new Error(`El modelo generó texto en lugar de imagen para ${format.name}. Reintenta el proceso.`);
+          }
+          
+          console.error('Lovable AI full response:', JSON.stringify(aiData, null, 2));
+          throw new Error(`No se generó imagen para ${format.name}. Verifica los logs.`);
         }
 
         console.log(`${format.name} image generated successfully`);
