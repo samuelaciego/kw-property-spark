@@ -122,26 +122,14 @@ export function AppSidebar() {
         {/* Properties Section */}
         {!isCollapsed && (
           <div className="px-4 py-4 border-t border-border">
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">Propiedades</span>
-                  <span className="text-xs text-muted-foreground">
-                    {creditsRemaining} restantes
-                  </span>
-                </div>
-                <Progress value={usagePercentage} className="h-1" />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-foreground">Propiedades</span>
+                <span className="text-xs text-muted-foreground">
+                  {creditsRemaining} restantes
+                </span>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                asChild
-              >
-                <Link to="/plans">
-                  Convertirse en afiliado
-                </Link>
-              </Button>
+              <Progress value={usagePercentage} className="h-1" />
             </div>
           </div>
         )}
@@ -167,6 +155,22 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Affiliate Button */}
+        {!isCollapsed && (
+          <div className="px-4 py-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              asChild
+            >
+              <Link to="/plans">
+                Convertirse en afiliado
+              </Link>
+            </Button>
+          </div>
+        )}
       </SidebarContent>
 
       {/* Footer with User Profile */}
