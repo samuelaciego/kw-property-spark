@@ -39,6 +39,9 @@ interface PropertyData {
   facebook_content?: string;
   instagram_content?: string;
   tiktok_content?: string;
+  generated_image_facebook?: string;
+  generated_image_instagram?: string;
+  generated_image_stories?: string;
   agent: {
     name: string;
     phone: string;
@@ -172,7 +175,7 @@ export default function PropertyProcessor() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Step 4: Generate AI content for all platforms
-      setProgress(80);
+      setProgress(70);
       
       const propertyForAI = {
         title: extractedData.title,
@@ -194,8 +197,60 @@ export default function PropertyProcessor() {
         })
       ]);
 
-      // Step 5: Finalize
+      const facebookContent = facebookResult.data?.generatedContent || null;
+      const instagramContent = instagramResult.data?.generatedContent || null;
+      const tiktokContent = tiktokResult.data?.generatedContent || null;
+
+      // Step 5: Generate social media images
+      setProgress(85);
+      console.log('Generating social media images...');
+
+      let imageUrls = {
+        facebook: null,
+        instagram: null,
+        stories: null
+      };
+
+      // Only generate images if we have at least 3 property images
+      if (extractedData.images && extractedData.images.length >= 3) {
+        try {
+          const tempPropertyId = crypto.randomUUID();
+          
+          const { data: imageData, error: imageError } = await supabase.functions.invoke(
+            'generate-property-images',
+            {
+              body: {
+                propertyData: {
+                  price: extractedData.price,
+                  address: extractedData.address,
+                  bedrooms: extractedData.bedrooms || 'N/A',
+                  bathrooms: extractedData.bathrooms || 'N/A',
+                },
+                images: extractedData.images.slice(0, 3),
+                userId: profile.user_id,
+                propertyId: tempPropertyId
+              }
+            }
+          );
+
+          if (imageError) {
+            console.error('Error generating images:', imageError);
+          } else if (imageData) {
+            imageUrls = imageData;
+            console.log('Images generated successfully:', imageUrls);
+          }
+        } catch (err) {
+          console.error('Exception generating images:', err);
+          // No bloqueamos el proceso si falla la generación de imágenes
+        }
+      } else {
+        console.log('Not enough images to generate social media graphics (need at least 3)');
+      }
+
+      // Step 6: Finalize
       setProgress(100);
+
+      console.log('Saving to database...');
 
       // Save to database with AI-generated content
       const newProperty = {
@@ -208,9 +263,12 @@ export default function PropertyProcessor() {
         agent_name: profile.full_name || "Agente",
         agent_phone: (profile as any).phone || "",
         images: extractedData.images || [],
-        facebook_content: facebookResult.data?.generatedContent || null,
-        instagram_content: instagramResult.data?.generatedContent || null,
-        tiktok_content: tiktokResult.data?.generatedContent || null,
+        facebook_content: facebookContent,
+        instagram_content: instagramContent,
+        tiktok_content: tiktokContent,
+        generated_image_facebook: imageUrls.facebook,
+        generated_image_instagram: imageUrls.instagram,
+        generated_image_stories: imageUrls.stories,
         hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices"],
         status: "processed"
       };
@@ -239,7 +297,10 @@ export default function PropertyProcessor() {
         id: insertedProperty.id,
         facebook_content: insertedProperty.facebook_content,
         instagram_content: insertedProperty.instagram_content,
-        tiktok_content: insertedProperty.tiktok_content
+        tiktok_content: insertedProperty.tiktok_content,
+        generated_image_facebook: insertedProperty.generated_image_facebook,
+        generated_image_instagram: insertedProperty.generated_image_instagram,
+        generated_image_stories: insertedProperty.generated_image_stories
       });
 
       toast({
@@ -399,8 +460,10 @@ export default function PropertyProcessor() {
                       {progress < 20 && "Validando URL..."}
                       {progress >= 20 && progress < 40 && "Extrayendo datos..."}
                       {progress >= 40 && progress < 60 && "Analizando imágenes..."}
-                      {progress >= 60 && progress < 80 && "Generando contenido..."}
-                      {progress >= 80 && "Finalizando proceso..."}
+                      {progress >= 60 && progress < 70 && "Generando contenido..."}
+                      {progress >= 70 && progress < 85 && "Generando contenido AI..."}
+                      {progress >= 85 && progress < 100 && "Generando imágenes para redes sociales..."}
+                      {progress >= 100 && "Finalizando proceso..."}
                     </p>
                   </div>
                 )}
@@ -422,6 +485,9 @@ export default function PropertyProcessor() {
                   facebook_content: propertyData.facebook_content || '',
                   instagram_content: propertyData.instagram_content || '',
                   tiktok_content: propertyData.tiktok_content || '',
+                  generated_image_facebook: propertyData.generated_image_facebook,
+                  generated_image_instagram: propertyData.generated_image_instagram,
+                  generated_image_stories: propertyData.generated_image_stories,
                   hashtags: [],
                   agent_name: profile?.full_name || null,
                   agent_phone: (profile as any)?.phone || null
