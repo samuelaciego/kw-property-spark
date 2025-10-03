@@ -19,10 +19,10 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY no configurada');
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY no configurada');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -100,46 +100,66 @@ DIMENSIONES FINALES: ${format.size}
 El resultado debe ser una imagen ${format.orientation} optimizada para ${format.name}.`;
 
       try {
-        // Prepare images for AI
-        const imageContents = [
-          {
-            type: "text",
-            text: prompt
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:image/png;base64,${templateBase64}`
-            }
-          }
+        // Prepare images for AI in Gemini format
+        const parts = [
+          { text: prompt }
         ];
+
+        // Add template image
+        parts.push({
+          inline_data: {
+            mime_type: 'image/png',
+            data: templateBase64
+          }
+        });
 
         // Add property images
         for (let i = 0; i < 3 && i < images.length; i++) {
-          imageContents.push({
-            type: "image_url",
-            image_url: {
-              url: images[i]
+          const imageUrl = images[i];
+          
+          // Convert URL to base64 if needed
+          if (imageUrl.startsWith('http')) {
+            const imageResponse = await fetch(imageUrl);
+            const imageBlob = await imageResponse.arrayBuffer();
+            const imageBase64 = btoa(String.fromCharCode(...new Uint8Array(imageBlob)));
+            parts.push({
+              inline_data: {
+                mime_type: 'image/jpeg',
+                data: imageBase64
+              }
+            });
+          } else if (imageUrl.startsWith('data:')) {
+            // Extract base64 from data URL
+            const matches = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+            if (matches) {
+              parts.push({
+                inline_data: {
+                  mime_type: `image/${matches[1]}`,
+                  data: matches[2]
+                }
+              });
             }
-          });
+          }
         }
 
-        // Call Lovable AI Gateway
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [{
-              role: "user",
-              content: imageContents
-            }],
-            modalities: ["image", "text"]
-          })
-        });
+        // Call Google Gemini API directly
+        const aiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${geminiApiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: parts
+              }],
+              generationConfig: {
+                responseModalities: ["image"]
+              }
+            })
+          }
+        );
 
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
@@ -148,11 +168,20 @@ El resultado debe ser una imagen ${format.orientation} optimizada para ${format.
         }
 
         const aiData = await aiResponse.json();
-        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        
+        // Extract image from Gemini response
+        const imagePart = aiData.candidates?.[0]?.content?.parts?.find(
+          (part: any) => part.inline_data
+        );
 
-        if (!generatedImageUrl) {
+        if (!imagePart?.inline_data?.data) {
+          console.error('Gemini response:', JSON.stringify(aiData, null, 2));
           throw new Error(`No se generó imagen para ${format.name}`);
         }
+
+        // Reconstruct base64 data URL
+        const mimeType = imagePart.inline_data.mime_type || 'image/png';
+        const generatedImageUrl = `data:${mimeType};base64,${imagePart.inline_data.data}`;
 
         console.log(`${format.name} image generated successfully`);
 
