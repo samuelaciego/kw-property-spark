@@ -1,16 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Input validation schema
-const RequestSchema = z.object({
-  propertyId: z.string().uuid('Invalid property ID format')
-});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,22 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    
-    // Validate input
-    const validation = RequestSchema.safeParse(body);
-    if (!validation.success) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: 'Invalid input data',
-        details: validation.error.issues
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { propertyId } = validation.data;
+    const { propertyId } = await req.json();
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -84,7 +63,9 @@ serve(async (req) => {
       agency_logo: profile?.agency_logo_url || ''
     };
 
-    console.log('Generating images for property:', propertyId);
+    console.log('Template data prepared:', templateData);
+
+    console.log('Generating images with Templated.io:', templateData);
 
     // Generate all three images in parallel
     const generateImage = async (templateId: string) => {
@@ -101,8 +82,8 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        console.error('Templated.io error:', response.status);
-        throw new Error('Failed to generate image');
+        const errorText = await response.text();
+        throw new Error(`Templated.io error: ${response.status} ${errorText}`);
       }
 
       const result = await response.json();
@@ -115,7 +96,7 @@ serve(async (req) => {
       generateImage(TEMPLATES.facebook)
     ]);
 
-    console.log('Images generated successfully for property:', propertyId);
+    console.log('Images generated:', { instagramUrl, storiesUrl, facebookUrl });
 
     // Download and upload images to Supabase Storage
     const uploadImage = async (url: string, filename: string) => {
@@ -171,11 +152,11 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error generating images');
+    console.error('Error generating images:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Failed to generate images'
+        error: error.message
       }),
       { 
         status: 500,

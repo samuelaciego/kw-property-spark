@@ -1,14 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
-
-// Input validation schema
-const RequestSchema = z.object({
-  propertyId: z.string().uuid(),
-  imageUrls: z.array(z.string().url()).min(1).max(10),
-  title: z.string().min(1).max(150),
-  description: z.string().max(2200)
-});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,21 +7,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
-    
-    // Validate input
-    const validation = RequestSchema.safeParse(body);
-    if (!validation.success) {
-      return new Response(JSON.stringify({ 
-        error: 'Invalid input data',
-        details: validation.error.issues
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const { propertyId, imageUrls, title, description } = validation.data;
+    const { propertyId, imageUrls, title, description } = await req.json()
     
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -59,7 +36,7 @@ Deno.serve(async (req) => {
       throw new Error('TikTok no conectado')
     }
 
-    console.log('Creating TikTok video for property:', propertyId);
+    console.log('Creating TikTok video...', { propertyId, imageUrls: imageUrls?.length })
 
     // For now, we'll use a simple approach - upload the first image as a video frame
     // In a full implementation, you'd create an actual video from multiple images
@@ -98,11 +75,12 @@ Deno.serve(async (req) => {
     const initData = await initResponse.json()
     
     if (initData.error) {
-      console.error('TikTok API error');
+      console.error('TikTok API error:', initData.error);
+      // Return generic error message to client
       throw new Error('Failed to create TikTok video');
     }
 
-    console.log('TikTok upload session initialized');
+    console.log('TikTok upload session initialized:', initData.data?.publish_id)
 
     // For this example, we'll return the publish_id and let the client handle video creation
     // In a full implementation, you'd:
@@ -121,10 +99,9 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('TikTok video creation error');
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Failed to create video' 
-    }), {
+    console.error('TikTok video creation error:', error)
+    // Return generic error message to client, log details server-side
+    return new Response(JSON.stringify({ error: 'Failed to create video' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
