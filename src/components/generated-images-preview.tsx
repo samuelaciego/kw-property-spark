@@ -70,7 +70,7 @@ export const GeneratedImagesPreview: React.FC<GeneratedImagesPreviewProps> = ({
               Imágenes Generadas
             </CardTitle>
             <CardDescription>
-              Imágenes profesionales creadas con Templated.io
+              Imágenes profesionales generadas con HTML personalizado
             </CardDescription>
           </div>
           <Button

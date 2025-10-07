@@ -243,9 +243,9 @@ export default function PropertyProcessor() {
       
       await refreshProfile();
 
-      // Generate templated images automatically
+      // Generate social images automatically
       try {
-        const { data: imagesData, error: imagesError } = await supabase.functions.invoke('generate-templated-images', {
+        const { data: imagesData, error: imagesError } = await supabase.functions.invoke('generate-social-images', {
           body: { propertyId: insertedProperty.id }
         });
 
@@ -310,7 +310,7 @@ export default function PropertyProcessor() {
     setGeneratingImages(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-templated-images', {
+      const { data, error } = await supabase.functions.invoke('generate-social-images', {
         body: { propertyId: propertyData.id }
       });
 
@@ -334,7 +334,7 @@ export default function PropertyProcessor() {
       console.error('Error generating images:', error);
       toast({
         title: "Error al generar imágenes",
-        description: error.message || "No se pudieron generar las imágenes con Templated.io",
+        description: error.message || "No se pudieron generar las imágenes",
         variant: "destructive"
       });
     } finally {
