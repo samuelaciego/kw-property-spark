@@ -6,7 +6,6 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const cloudflareAccountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
 const cloudflareApiToken = Deno.env.get('CLOUDFLARE_API_TOKEN')!;
-const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -247,79 +246,44 @@ serve(async (req) => {
 
     // Generate image with Cloudflare Browser Rendering API
     const generateImageWithCloudflare = async (platform: string, width: number, height: number) => {
-      try {
-        console.log(`Generating ${platform} image with Cloudflare...`);
-        
-        const html = generateHTML(platform, width, height);
-        const base64HTML = btoa(unescape(encodeURIComponent(html)));
+      console.log(`Generating ${platform} image with Cloudflare...`);
+      
+      const html = generateHTML(platform, width, height);
+      const base64HTML = btoa(unescape(encodeURIComponent(html)));
 
-        const response = await fetch(
-          `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/browser-rendering/screenshot`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${cloudflareApiToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              html: base64HTML,
-              width,
-              height,
-              format: 'jpeg',
-              quality: 85,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Cloudflare API error: ${response.status} ${errorText}`);
-          throw new Error(`Cloudflare API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const screenshot = data.result?.screenshot;
-
-        if (!screenshot) {
-          throw new Error('No screenshot returned by Cloudflare');
-        }
-
-        console.log(`${platform} image generated successfully with Cloudflare`);
-        return `data:image/jpeg;base64,${screenshot}`;
-      } catch (error) {
-        console.error(`Cloudflare generation failed for ${platform}:`, error);
-        console.log(`Falling back to Lovable AI for ${platform}...`);
-        
-        // Fallback to Lovable AI
-        const prompt = `Crear una imagen profesional de publicación inmobiliaria para ${platform} con precio ${property.price}, dirección ${property.address}. Estilo moderno, colores rojo (#dc2626) y blanco, incluir información del agente ${profile?.full_name || 'Agente'}.`;
-        
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/browser-rendering/screenshot`,
+        {
+          method: 'POST',
           headers: {
-            Authorization: `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
+            'Authorization': `Bearer ${cloudflareApiToken}`,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
-            messages: [{ role: "user", content: prompt }],
-            modalities: ["image", "text"]
-          })
-        });
-
-        if (!aiResponse.ok) {
-          throw new Error('Both Cloudflare and AI fallback failed');
+            html: base64HTML,
+            width,
+            height,
+            format: 'jpeg',
+            quality: 85,
+          }),
         }
+      );
 
-        const aiData = await aiResponse.json();
-        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-        if (!generatedImageUrl) {
-          throw new Error('No image generated');
-        }
-
-        console.log(`${platform} image generated successfully with AI fallback`);
-        return generatedImageUrl;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Cloudflare API error: ${response.status} ${errorText}`);
+        throw new Error(`Error al generar imagen con Cloudflare (${response.status}): ${errorText}`);
       }
+
+      const data = await response.json();
+      const screenshot = data.result?.screenshot;
+
+      if (!screenshot) {
+        throw new Error('Cloudflare no devolvió ninguna imagen');
+      }
+
+      console.log(`${platform} image generated successfully with Cloudflare`);
+      return `data:image/jpeg;base64,${screenshot}`;
     };
 
     // Upload base64 image to Supabase Storage
