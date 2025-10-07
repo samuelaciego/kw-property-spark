@@ -4,8 +4,16 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const cloudflareAccountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
-const cloudflareApiToken = Deno.env.get('CLOUDFLARE_API_TOKEN')!;
+const cloudflareAccountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
+const cloudflareApiToken = Deno.env.get('CLOUDFLARE_API_TOKEN');
+
+// Validate required environment variables
+if (!cloudflareAccountId || !cloudflareApiToken) {
+  console.error('Missing Cloudflare credentials:', { 
+    hasAccountId: !!cloudflareAccountId, 
+    hasApiToken: !!cloudflareApiToken 
+  });
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -246,6 +254,10 @@ serve(async (req) => {
 
     // Generate image with Cloudflare Browser Rendering API
     const generateImageWithCloudflare = async (platform: string, width: number, height: number) => {
+      if (!cloudflareAccountId || !cloudflareApiToken) {
+        throw new Error('Credenciales de Cloudflare no configuradas. Por favor configura CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_API_TOKEN en los secrets.');
+      }
+
       console.log(`Generating ${platform} image with Cloudflare...`);
       
       const html = generateHTML(platform, width, height);
@@ -275,15 +287,25 @@ serve(async (req) => {
         throw new Error(`Error al generar imagen con Cloudflare (${response.status}): ${errorText}`);
       }
 
-      const data = await response.json();
-      const screenshot = data.result?.screenshot;
+      // Check if response is JSON or binary
+      const contentType = response.headers.get('content-type');
+      let screenshot: string;
 
-      if (!screenshot) {
-        throw new Error('Cloudflare no devolvió ninguna imagen');
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        screenshot = data.result?.screenshot;
+        if (!screenshot) {
+          throw new Error('Cloudflare no devolvió ninguna imagen en el JSON');
+        }
+      } else {
+        // Response is binary image data
+        const arrayBuffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        screenshot = btoa(String.fromCharCode(...bytes));
       }
 
       console.log(`${platform} image generated successfully with Cloudflare`);
-      return `data:image/jpeg;base64,${screenshot}`;
+      return `data:image/png;base64,${screenshot}`;
     };
 
     // Upload base64 image to Supabase Storage
