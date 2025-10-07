@@ -261,7 +261,21 @@ serve(async (req) => {
       console.log(`Generating ${platform} image with Cloudflare...`);
       
       const html = generateHTML(platform, width, height);
+      console.log(`Generated HTML length: ${html.length} characters`);
+      console.log(`HTML preview (first 300 chars): ${html.substring(0, 300)}`);
+      
       const base64HTML = btoa(unescape(encodeURIComponent(html)));
+      console.log(`HTML encoded to base64, length: ${base64HTML.length}`);
+      console.log(`Base64 HTML preview (first 100 chars): ${base64HTML.substring(0, 100)}`);
+
+      const requestBody = {
+        html: base64HTML,
+        viewport: {
+          width,
+          height,
+        },
+      };
+      console.log(`Request body viewport:`, requestBody.viewport);
 
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/browser-rendering/screenshot`,
@@ -271,15 +285,12 @@ serve(async (req) => {
             'Authorization': `Bearer ${cloudflareApiToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            html: base64HTML,
-            viewport: {
-              width,
-              height,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
+
+      console.log(`Cloudflare response status: ${response.status}`);
+      console.log(`Cloudflare response content-type: ${response.headers.get('content-type')}`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -289,19 +300,44 @@ serve(async (req) => {
 
       // Check if response is JSON or binary
       const contentType = response.headers.get('content-type');
+      console.log(`Response content-type: ${contentType}`);
       let screenshot: string;
 
       if (contentType?.includes('application/json')) {
         const data = await response.json();
+        console.log(`Response JSON keys:`, Object.keys(data));
+        console.log(`Response success:`, data.success);
+        console.log(`Response result keys:`, data.result ? Object.keys(data.result) : 'no result');
+        
         screenshot = data.result?.screenshot;
         if (!screenshot) {
+          console.error(`Full response:`, JSON.stringify(data, null, 2));
           throw new Error('Cloudflare no devolvió ninguna imagen en el JSON');
         }
+        
+        console.log(`Screenshot received from JSON, length: ${screenshot.length}`);
+        console.log(`Screenshot preview (first 100 chars): ${screenshot.substring(0, 100)}`);
+        console.log(`Screenshot preview (last 50 chars): ${screenshot.substring(screenshot.length - 50)}`);
+        
+        // Verify it's valid base64
+        const isValidBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(screenshot);
+        console.log(`Is valid base64 format: ${isValidBase64}`);
+        
       } else {
+        console.log(`Response is binary image data`);
         // Response is binary image data
         const arrayBuffer = await response.arrayBuffer();
+        console.log(`ArrayBuffer size: ${arrayBuffer.byteLength} bytes`);
+        
         const bytes = new Uint8Array(arrayBuffer);
+        console.log(`First 20 bytes:`, Array.from(bytes.slice(0, 20)));
+        
+        // PNG files should start with: 137 80 78 71 13 10 26 10 (PNG signature)
+        const isPNG = bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
+        console.log(`Is valid PNG signature: ${isPNG}`);
+        
         screenshot = btoa(String.fromCharCode(...bytes));
+        console.log(`Converted binary to base64, length: ${screenshot.length}`);
       }
 
       console.log(`${platform} image generated successfully with Cloudflare`);
@@ -310,39 +346,63 @@ serve(async (req) => {
 
     // Upload base64 image to Supabase Storage
     const uploadImage = async (base64Data: string, fileName: string) => {
+      console.log(`Starting upload for ${fileName}`);
+      console.log(`Base64 data length (with prefix): ${base64Data.length}`);
+      console.log(`Base64 data prefix: ${base64Data.substring(0, 50)}`);
+      
       // Remove data:image/png;base64, prefix if present
       const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, '');
+      console.log(`Base64 content length (without prefix): ${base64Content.length}`);
+      console.log(`Base64 content preview (first 100 chars): ${base64Content.substring(0, 100)}`);
       
-      // Convert base64 to Uint8Array
-      const binaryString = atob(base64Content);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+      try {
+        // Convert base64 to Uint8Array
+        const binaryString = atob(base64Content);
+        console.log(`Binary string length: ${binaryString.length}`);
+        
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        console.log(`Converted to Uint8Array, ${bytes.length} bytes`);
+        console.log(`First 20 bytes:`, Array.from(bytes.slice(0, 20)));
+        
+        // PNG files should start with: 137 80 78 71 13 10 26 10 (PNG signature)
+        const isPNG = bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
+        console.log(`Is valid PNG signature: ${isPNG}`);
+        if (!isPNG) {
+          console.warn(`WARNING: File does not have valid PNG signature!`);
+        }
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('property-images')
+          .upload(`${propertyId}/${fileName}`, bytes, {
+            contentType: 'image/png',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error(`Upload error:`, uploadError);
+          throw uploadError;
+        }
+
+        console.log(`Upload successful:`, uploadData);
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('property-images')
+          .getPublicUrl(`${propertyId}/${fileName}`);
+
+        console.log(`Public URL generated: ${publicUrl}`);
+        return publicUrl;
+      } catch (error) {
+        console.error(`Error in uploadImage for ${fileName}:`, error);
+        throw error;
       }
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('property-images')
-        .upload(`${propertyId}/${fileName}`, bytes, {
-          contentType: 'image/png',
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('property-images')
-        .getPublicUrl(`${propertyId}/${fileName}`);
-
-      return publicUrl;
     };
 
-    // Generate all three images with delays to avoid rate limits
+    // Generate only Instagram image for now (debugging)
     const sizes = [
       { name: 'instagram', width: 1080, height: 1080, platform: 'Instagram Feed (1080x1080)' },
-      { name: 'stories', width: 1080, height: 1920, platform: 'Instagram Stories (1080x1920)' },
-      { name: 'facebook', width: 1200, height: 630, platform: 'Facebook (1200x630)' },
     ];
 
     const results: Record<string, string> = {};
