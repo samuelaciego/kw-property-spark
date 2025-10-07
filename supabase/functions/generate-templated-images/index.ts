@@ -49,23 +49,60 @@ serve(async (req) => {
       facebook: '247ff9ee-e498-40d6-bb1b-d2ed15615c4a'
     };
 
-    // Prepare template data - images as direct URLs
-    const templateData = {
-      property_image_1: property.images?.[0] || '',
-      property_image_2: property.images?.[1] || '',
-      property_image_3: property.images?.[2] || '',
-      price: property.price || 'N/A',
-      address: property.address || '',
-      agent_photo: profile?.user_avatar_url || profile?.avatar_url || '',
-      agent_name: profile?.full_name || property.agent_name || '',
-      agent_phone: profile?.phone || property.agent_phone || '',
-      agent_email: profile?.email || '',
-      agency_logo: profile?.agency_logo_url || ''
+    // Prepare layers object for Templated.io API
+    const layers = {
+      BG: {},
+      Footer: {},
+      Info: {},
+      IMG1: { 
+        image_url: property.images?.[0] || '' 
+      },
+      IMGCointainer: {},
+      IMG2: { 
+        image_url: property.images?.[1] || '' 
+      },
+      IMG3: { 
+        image_url: property.images?.[2] || '' 
+      },
+      IMGTitle: { 
+        text: "¡Nueva Propiedad!", 
+        color: "rgba(255, 255, 255, 1)" 
+      },
+      PropertyTitle: { 
+        text: property.title || "Recién Listado", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      PropertyPrice: { 
+        text: property.price || "N/A", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      PropertyLocation: { 
+        text: property.address || "", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      AgentImage: { 
+        image_url: profile?.user_avatar_url || profile?.avatar_url || '' 
+      },
+      AgentName: { 
+        text: profile?.full_name || property.agent_name || "", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      AgentPhone: { 
+        text: profile?.phone || property.agent_phone || "", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      PhoneIcon: {},
+      EmailIcon: {},
+      AgentEmail: { 
+        text: profile?.email || "", 
+        color: "rgba(0,0,0, 1)" 
+      },
+      AgentAgency: { 
+        image_url: profile?.agency_logo_url || '' 
+      }
     };
 
-    console.log('Template data prepared:', templateData);
-
-    console.log('Generating images with Templated.io:', templateData);
+    console.log('Layers prepared for Templated.io:', layers);
 
     // Generate all three images in parallel
     const generateImage = async (templateId: string) => {
@@ -77,7 +114,8 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           template: templateId,
-          layers: templateData
+          format: 'jpg',
+          layers: layers
         })
       });
 
