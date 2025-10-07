@@ -77,7 +77,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           template: templateId,
-          ...templateData
+          layers: templateData
         })
       });
 
