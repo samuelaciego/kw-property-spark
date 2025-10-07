@@ -261,10 +261,10 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             html: base64HTML,
-            width,
-            height,
-            format: 'jpeg',
-            quality: 85,
+            viewport: {
+              width,
+              height,
+            },
           }),
         }
       );
