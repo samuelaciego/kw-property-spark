@@ -4,6 +4,8 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const cloudflareAccountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
+const cloudflareApiToken = Deno.env.get('CLOUDFLARE_API_TOKEN')!;
 const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
 
 serve(async (req) => {
@@ -39,87 +41,285 @@ serve(async (req) => {
       console.warn('Profile not found:', profileError.message);
     }
 
-    // Generate images using Lovable AI (Gemini)
-    const generateImageWithAI = async (platform: string, width: number, height: number) => {
-      const aspectRatio = width / height;
-      const aspectRatioText = aspectRatio === 1 ? "1:1 cuadrado" : 
-                              aspectRatio > 1.5 ? "horizontal (1.91:1)" : "vertical (9:16)";
+    // Generate HTML template for each platform
+    const generateHTML = (platform: string, width: number, height: number) => {
+      const isSquare = width === height;
+      const isVertical = height > width;
+      const mainImage = property.images?.[0] || '';
+      const secondImage = property.images?.[1] || '';
+      const thirdImage = property.images?.[2] || '';
 
-      const prompt = `Crear una imagen profesional de publicación inmobiliaria para ${platform} en formato ${aspectRatioText}, aspecto ratio ${width}x${height}px.
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      width: ${width}px; 
+      height: ${height}px; 
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #dc2626;
+      color: white;
+      padding: ${isVertical ? '25px' : '20px'};
+      font-size: ${isVertical ? '42px' : isSquare ? '38px' : '32px'};
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .badge {
+      background: white;
+      color: #dc2626;
+      padding: ${isVertical ? '8px 20px' : '6px 16px'};
+      font-size: ${isVertical ? '20px' : '16px'};
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      ${isVertical ? 'flex-direction: column;' : 'flex-direction: row;'}
+      gap: ${isSquare ? '15px' : '20px'};
+      padding: ${isVertical ? '20px' : '15px'};
+    }
+    .main-section {
+      ${isVertical ? 'flex: 0 0 55%;' : isSquare ? 'flex: 0 0 65%;' : 'flex: 0 0 60%;'}
+      display: flex;
+      flex-direction: column;
+      gap: ${isVertical ? '15px' : '12px'};
+    }
+    .main-image {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .main-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .info-section {
+      ${isVertical ? 'flex: 1;' : isSquare ? 'flex: 0 0 32%;' : 'flex: 0 0 38%;'}
+      display: flex;
+      flex-direction: column;
+      gap: ${isVertical ? '15px' : '12px'};
+    }
+    .price-box {
+      background: white;
+      padding: ${isVertical ? '25px' : '20px'};
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .price {
+      font-size: ${isVertical ? '42px' : isSquare ? '36px' : '32px'};
+      font-weight: bold;
+      color: #dc2626;
+      margin-bottom: 10px;
+    }
+    .address {
+      font-size: ${isVertical ? '18px' : '15px'};
+      color: #666;
+      line-height: 1.4;
+    }
+    .gallery {
+      display: ${isVertical ? 'grid' : 'flex'};
+      ${isVertical ? 'grid-template-columns: 1fr 1fr;' : 'flex-direction: column;'}
+      gap: ${isVertical ? '15px' : '12px'};
+      flex: 1;
+    }
+    .gallery-item {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      ${!isVertical ? 'flex: 1;' : ''}
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .footer {
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      color: white;
+      padding: ${isVertical ? '25px' : '20px'};
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -4px 6px rgba(0,0,0,0.1);
+    }
+    .agent-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .agent-avatar {
+      width: ${isVertical ? '70px' : '60px'};
+      height: ${isVertical ? '70px' : '60px'};
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: ${isVertical ? '32px' : '28px'};
+      font-weight: bold;
+      color: #dc2626;
+      border: 3px solid white;
+    }
+    .agent-details {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .agent-name {
+      font-size: ${isVertical ? '22px' : '18px'};
+      font-weight: bold;
+    }
+    .agent-contact {
+      font-size: ${isVertical ? '16px' : '14px'};
+      opacity: 0.9;
+    }
+    .qr-placeholder {
+      width: ${isVertical ? '80px' : '70px'};
+      height: ${isVertical ? '80px' : '70px'};
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: ${isVertical ? '12px' : '10px'};
+      color: #666;
+      text-align: center;
+      padding: 8px;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    ¡NUEVA PROPIEDAD!
+    <div class="badge">Recién Listado</div>
+  </div>
+  <div class="content">
+    <div class="main-section">
+      <div class="main-image">
+        <img src="${mainImage}" alt="Property" crossorigin="anonymous" />
+      </div>
+    </div>
+    <div class="info-section">
+      <div class="price-box">
+        <div class="price">${property.price || 'Consultar'}</div>
+        <div class="address">${property.address || 'Ubicación privilegiada'}</div>
+      </div>
+      ${secondImage || thirdImage ? `
+      <div class="gallery">
+        ${secondImage ? `<div class="gallery-item"><img src="${secondImage}" alt="Property 2" crossorigin="anonymous" /></div>` : ''}
+        ${thirdImage ? `<div class="gallery-item"><img src="${thirdImage}" alt="Property 3" crossorigin="anonymous" /></div>` : ''}
+      </div>
+      ` : ''}
+    </div>
+  </div>
+  <div class="footer">
+    <div class="agent-info">
+      <div class="agent-avatar">${(profile?.full_name || 'Agente').charAt(0).toUpperCase()}</div>
+      <div class="agent-details">
+        <div class="agent-name">${profile?.full_name || 'Agente Inmobiliario'}</div>
+        <div class="agent-contact">📞 ${profile?.phone || '+34 XXX XXX XXX'}</div>
+      </div>
+    </div>
+    <div class="qr-placeholder">QR Code</div>
+  </div>
+</body>
+</html>`;
+    };
 
-CONTENIDO A INCLUIR:
-- Título grande en la parte superior con fondo rojo: "¡NUEVA PROPIEDAD!"
-- Precio destacado: ${property.price || 'Consultar precio'}
-- Dirección: ${property.address || 'Ubicación privilegiada'}
-- Texto: "Recién Listado"
+    // Generate image with Cloudflare Browser Rendering API
+    const generateImageWithCloudflare = async (platform: string, width: number, height: number) => {
+      try {
+        console.log(`Generating ${platform} image with Cloudflare...`);
+        
+        const html = generateHTML(platform, width, height);
+        const base64HTML = btoa(unescape(encodeURIComponent(html)));
 
-DISEÑO VISUAL:
-${platform === 'Instagram Feed (1080x1080)' ? `
-- Layout cuadrado dividido en secciones
-- Imagen principal de la propiedad ocupando 60% del espacio
-- Dos imágenes pequeñas en el lateral derecho
-- Sección inferior con información del agente: ${profile?.full_name || 'Agente Inmobiliario'}
-- Iconos de teléfono y email con datos de contacto
-` : platform === 'Instagram Stories (1080x1920)' ? `
-- Layout vertical aprovechando toda la altura
-- Imagen principal de propiedad en la parte superior (60%)
-- Información de precio y ubicación en el medio
-- Dos imágenes medianas debajo
-- Información del agente en la parte inferior
-` : `
-- Layout horizontal optimizado para Facebook
-- Imagen principal a la izquierda (70%)
-- Información clave a la derecha: precio, ubicación
-- Barra inferior con datos del agente
-`}
+        const response = await fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/browser-rendering/screenshot`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${cloudflareApiToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              html: base64HTML,
+              width,
+              height,
+              format: 'jpeg',
+              quality: 85,
+            }),
+          }
+        );
 
-ESTILO:
-- Moderno y profesional
-- Colores: rojo (#dc2626) para header, blanco y grises claros para el fondo
-- Tipografía limpia y legible
-- Incluir iconos de teléfono y email junto a la información de contacto
-- QR code placeholder en esquina inferior derecha
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Cloudflare API error: ${response.status} ${errorText}`);
+          throw new Error(`Cloudflare API error: ${response.status}`);
+        }
 
-CALIDAD:
-- Alta resolución
-- Aspecto profesional de agencia inmobiliaria
-- Limpio y organizado
-- Fácil de leer en dispositivos móviles`;
+        const data = await response.json();
+        const screenshot = data.result?.screenshot;
 
-      console.log(`Generating ${platform} image with prompt...`);
-      
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image-preview",
-          messages: [
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          modalities: ["image", "text"]
-        })
-      });
+        if (!screenshot) {
+          throw new Error('No screenshot returned by Cloudflare');
+        }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AI API error: ${response.status} ${errorText}`);
+        console.log(`${platform} image generated successfully with Cloudflare`);
+        return `data:image/jpeg;base64,${screenshot}`;
+      } catch (error) {
+        console.error(`Cloudflare generation failed for ${platform}:`, error);
+        console.log(`Falling back to Lovable AI for ${platform}...`);
+        
+        // Fallback to Lovable AI
+        const prompt = `Crear una imagen profesional de publicación inmobiliaria para ${platform} con precio ${property.price}, dirección ${property.address}. Estilo moderno, colores rojo (#dc2626) y blanco, incluir información del agente ${profile?.full_name || 'Agente'}.`;
+        
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image-preview",
+            messages: [{ role: "user", content: prompt }],
+            modalities: ["image", "text"]
+          })
+        });
+
+        if (!aiResponse.ok) {
+          throw new Error('Both Cloudflare and AI fallback failed');
+        }
+
+        const aiData = await aiResponse.json();
+        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+        if (!generatedImageUrl) {
+          throw new Error('No image generated');
+        }
+
+        console.log(`${platform} image generated successfully with AI fallback`);
+        return generatedImageUrl;
       }
-
-      const data = await response.json();
-      const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-      if (!generatedImageUrl) {
-        throw new Error('No image generated by AI');
-      }
-
-      console.log(`${platform} image generated successfully`);
-      return generatedImageUrl;
     };
 
     // Upload base64 image to Supabase Storage
@@ -164,7 +364,7 @@ CALIDAD:
     for (const size of sizes) {
       console.log(`Generating ${size.name} image...`);
       
-      const base64Image = await generateImageWithAI(size.platform, size.width, size.height);
+      const base64Image = await generateImageWithCloudflare(size.platform, size.width, size.height);
       
       const fileName = `${size.name}-${Date.now()}.png`;
       const publicUrl = await uploadImage(base64Image, fileName);
