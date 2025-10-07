@@ -338,7 +338,7 @@ serve(async (req) => {
       return publicUrl;
     };
 
-    // Generate all three images
+    // Generate all three images with delays to avoid rate limits
     const sizes = [
       { name: 'instagram', width: 1080, height: 1080, platform: 'Instagram Feed (1080x1080)' },
       { name: 'stories', width: 1080, height: 1920, platform: 'Instagram Stories (1080x1920)' },
@@ -346,39 +346,68 @@ serve(async (req) => {
     ];
 
     const results: Record<string, string> = {};
+    const errors: Record<string, string> = {};
 
-    for (const size of sizes) {
-      console.log(`Generating ${size.name} image...`);
+    for (let i = 0; i < sizes.length; i++) {
+      const size = sizes[i];
       
-      const base64Image = await generateImageWithCloudflare(size.platform, size.width, size.height);
-      
-      const fileName = `${size.name}-${Date.now()}.png`;
-      const publicUrl = await uploadImage(base64Image, fileName);
-      results[`${size.name}Url`] = publicUrl;
-      
-      console.log(`${size.name} image uploaded:`, publicUrl);
+      try {
+        // Add delay between requests to avoid rate limits (except before first request)
+        if (i > 0) {
+          console.log(`Waiting 3 seconds before generating ${size.name} to avoid rate limits...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+        
+        console.log(`Generating ${size.name} image...`);
+        
+        const base64Image = await generateImageWithCloudflare(size.platform, size.width, size.height);
+        
+        const fileName = `${size.name}-${Date.now()}.png`;
+        const publicUrl = await uploadImage(base64Image, fileName);
+        results[`${size.name}Url`] = publicUrl;
+        
+        console.log(`${size.name} image uploaded successfully:`, publicUrl);
+      } catch (error) {
+        console.error(`Error generating ${size.name} image:`, error.message);
+        errors[size.name] = error.message;
+        // Continue with next image even if this one failed
+      }
     }
 
-    // Update property with image URLs
-    const { error: updateError } = await supabase
-      .from('properties')
-      .update({
-        generated_image_instagram: results.instagramUrl,
-        generated_image_stories: results.storiesUrl,
-        generated_image_facebook: results.facebookUrl,
-      })
-      .eq('id', propertyId);
+    // Update property with image URLs (only the ones that were generated successfully)
+    if (Object.keys(results).length > 0) {
+      const updateData: Record<string, string> = {};
+      if (results.instagramUrl) updateData.generated_image_instagram = results.instagramUrl;
+      if (results.storiesUrl) updateData.generated_image_stories = results.storiesUrl;
+      if (results.facebookUrl) updateData.generated_image_facebook = results.facebookUrl;
 
-    if (updateError) {
-      throw updateError;
+      const { error: updateError } = await supabase
+        .from('properties')
+        .update(updateData)
+        .eq('id', propertyId);
+
+      if (updateError) {
+        console.error('Error updating property:', updateError);
+      }
     }
 
-    console.log('All images generated successfully:', results);
+    const hasErrors = Object.keys(errors).length > 0;
+    const successCount = Object.keys(results).length;
+    const totalCount = sizes.length;
+
+    console.log(`Image generation completed: ${successCount}/${totalCount} successful`);
+    if (hasErrors) {
+      console.log('Errors:', errors);
+    }
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        images: results 
+        success: successCount > 0, 
+        images: results,
+        errors: hasErrors ? errors : undefined,
+        message: hasErrors 
+          ? `${successCount}/${totalCount} imágenes generadas exitosamente. Algunas fallaron debido a límites de la API.`
+          : 'Todas las imágenes fueron generadas exitosamente.'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
