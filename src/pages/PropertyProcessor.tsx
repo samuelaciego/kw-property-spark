@@ -249,8 +249,26 @@ export default function PropertyProcessor() {
           body: { propertyId: insertedProperty.id }
         });
 
-        if (!imagesError && imagesData.success) {
-          setGeneratedImages(imagesData.images);
+        if (imagesError) {
+          console.error('Error invoking generate-social-images:', imagesError);
+          toast({
+            title: "Error al generar imágenes",
+            description: imagesError.message || "No se pudieron generar las imágenes con Cloudflare",
+            variant: "destructive",
+          });
+        } else if (!imagesData.success) {
+          console.error('Image generation failed:', imagesData.error);
+          toast({
+            title: "Error al generar imágenes",
+            description: imagesData.error || "No se pudieron generar las imágenes con Cloudflare. Verifica la configuración de Cloudflare API.",
+            variant: "destructive",
+          });
+        } else {
+          setGeneratedImages({
+            instagram: imagesData.images.instagramUrl,
+            stories: imagesData.images.storiesUrl,
+            facebook: imagesData.images.facebookUrl
+          });
           
           // Set property data with all the data including generated images
           setPropertyData({
@@ -259,13 +277,34 @@ export default function PropertyProcessor() {
             facebook_content: insertedProperty.facebook_content,
             instagram_content: insertedProperty.instagram_content,
             tiktok_content: insertedProperty.tiktok_content,
-            generated_image_instagram: imagesData.images.instagram,
-            generated_image_stories: imagesData.images.stories,
-            generated_image_facebook: imagesData.images.facebook
+            generated_image_instagram: imagesData.images.instagramUrl,
+            generated_image_stories: imagesData.images.storiesUrl,
+            generated_image_facebook: imagesData.images.facebookUrl
+          });
+          
+          toast({
+            title: "Imágenes generadas",
+            description: "Las imágenes se generaron correctamente con Cloudflare",
+          });
+        }
+        
+        // Set property data even if image generation fails
+        if (!imagesData?.success) {
+          setPropertyData({
+            ...extractedData,
+            id: insertedProperty.id,
+            facebook_content: insertedProperty.facebook_content,
+            instagram_content: insertedProperty.instagram_content,
+            tiktok_content: insertedProperty.tiktok_content,
           });
         }
       } catch (imgError) {
         console.error('Error generating images:', imgError);
+        toast({
+          title: "Error al generar imágenes",
+          description: "Ocurrió un error inesperado al generar las imágenes",
+          variant: "destructive",
+        });
         // Still set property data even if image generation fails
         setPropertyData({
           ...extractedData,
@@ -273,9 +312,6 @@ export default function PropertyProcessor() {
           facebook_content: insertedProperty.facebook_content,
           instagram_content: insertedProperty.instagram_content,
           tiktok_content: insertedProperty.tiktok_content,
-          generated_image_instagram: insertedProperty.generated_image_instagram,
-          generated_image_stories: insertedProperty.generated_image_stories,
-          generated_image_facebook: insertedProperty.generated_image_facebook
         });
       }
 
