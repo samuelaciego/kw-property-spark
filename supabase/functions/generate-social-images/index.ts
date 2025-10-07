@@ -7,20 +7,35 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const cloudflareAccountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
 const cloudflareApiToken = Deno.env.get('CLOUDFLARE_API_TOKEN');
 
-// Validate required environment variables
-if (!cloudflareAccountId || !cloudflareApiToken) {
-  console.error('Missing Cloudflare credentials:', { 
-    hasAccountId: !!cloudflareAccountId, 
-    hasApiToken: !!cloudflareApiToken 
-  });
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Validate Cloudflare credentials immediately - fail fast
+    if (!cloudflareAccountId || !cloudflareApiToken) {
+      const missingCredentials = [];
+      if (!cloudflareAccountId) missingCredentials.push('CLOUDFLARE_ACCOUNT_ID');
+      if (!cloudflareApiToken) missingCredentials.push('CLOUDFLARE_API_TOKEN');
+      
+      const errorMessage = `Cloudflare credentials missing: ${missingCredentials.join(', ')}. Please configure these secrets in Supabase Edge Functions settings.`;
+      console.error(errorMessage);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: errorMessage,
+          missingCredentials
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log('Cloudflare credentials validated successfully');
     const { propertyId } = await req.json();
     console.log('Generating social images for property:', propertyId);
 
