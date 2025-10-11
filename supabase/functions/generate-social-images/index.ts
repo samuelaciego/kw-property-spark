@@ -6,6 +6,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const placidApiToken = Deno.env.get('PLACID_API_TOKEN');
 const placidTemplateId = Deno.env.get('KW_IG_POST_01');
+const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -63,46 +64,121 @@ serve(async (req) => {
       console.warn('Profile not found:', profileError.message);
     }
 
+    // Helper function to call Gemini API
+    const callGeminiAPI = async (prompt: string): Promise<string> => {
+      if (!geminiApiKey) {
+        throw new Error('GEMINI_API_KEY not configured');
+      }
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 150,
+            }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Gemini API error:', response.status, errorText);
+        throw new Error('Failed to generate content with Gemini');
+      }
+
+      const data = await response.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    };
+
+    // Generate property description with Gemini (20 words max)
+    const generatePropertyDescription = async (
+      description: string,
+      language: string
+    ): Promise<string> => {
+      const prompt = language === 'en'
+        ? `Write a compelling 20-word paragraph (maximum) in English about this property: ${description}`
+        : `Escribe un párrafo atractivo de máximo 20 palabras en español sobre esta propiedad: ${description}`;
+      
+      try {
+        const generatedDesc = await callGeminiAPI(prompt);
+        console.log('Generated PropertyDesc:', generatedDesc);
+        return generatedDesc.trim();
+      } catch (error) {
+        console.error('Error generating PropertyDesc:', error);
+        return description.substring(0, 150);
+      }
+    };
+
+    // Extract city from address with Gemini
+    const extractLocationCity = async (address: string): Promise<string> => {
+      const prompt = `Extract only the city/locality name from this address, without postal code: ${address}. Return only the city name, nothing else.`;
+      
+      try {
+        const cityName = await callGeminiAPI(prompt);
+        console.log('Extracted PropertyLocation:', cityName);
+        return cityName.trim();
+      } catch (error) {
+        console.error('Error extracting PropertyLocation:', error);
+        return address.substring(0, 100);
+      }
+    };
+
     // Generate image with Placid.app
     const generateImageWithPlacid = async () => {
       console.log('Generating Instagram image with Placid.app...');
       
-      // Extract property type from title (basic implementation)
-      const extractPropertyType = (title: string) => {
-        const lowerTitle = title?.toLowerCase() || '';
-        if (lowerTitle.includes('apartamento') || lowerTitle.includes('piso')) return 'APARTAMENTO';
-        if (lowerTitle.includes('casa') || lowerTitle.includes('chalet')) return 'CASA';
-        if (lowerTitle.includes('local')) return 'LOCAL';
-        if (lowerTitle.includes('oficina')) return 'OFICINA';
-        if (lowerTitle.includes('terreno')) return 'TERRENO';
-        return 'PROPIEDAD';
-      };
+      // Detect user language (default to 'es' if not set)
+      const userLanguage = profile?.language || 'es';
+      console.log(`User language detected: ${userLanguage}`);
 
-      // Truncate description to avoid overflow
-      const truncateText = (text: string, maxLength: number) => {
-        if (!text) return '';
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength - 3) + '...';
-      };
+      // Set fixed texts based on language
+      const propertyType = userLanguage === 'en' ? '¡New Property!' : '¡Nueva Propiedad!';
+      const propertyTitle = userLanguage === 'en' ? 'Just listed' : 'Recién Listado';
+
+      // Generate PropertyDesc with Gemini (20 words max)
+      let propertyDesc = userLanguage === 'en' 
+        ? 'Excellent investment opportunity' 
+        : 'Excelente oportunidad de inversión';
+        
+      if (property.description) {
+        propertyDesc = await generatePropertyDescription(
+          property.description,
+          userLanguage
+        );
+      }
+
+      // Extract city from address with Gemini
+      let propertyLocation = userLanguage === 'en'
+        ? 'Prime location'
+        : 'Ubicación privilegiada';
+        
+      if (property.address) {
+        propertyLocation = await extractLocationCity(property.address);
+      }
 
       // Build payload with layers mapped to property data
       const payload = {
         create_now: true, // Process image instantly instead of queueing
         layers: {
           PropertyType: { 
-            text: extractPropertyType(property.title) 
+            text: propertyType
           },
           PropertyPic1: { 
             image: property.images?.[0] || '' 
           },
           PropertyTitle: { 
-            text: truncateText(property.title || 'Propiedad Exclusiva', 80) 
+            text: propertyTitle
           },
           PropertyPrice: { 
             text: property.price || 'Consultar' 
           },
           PropertyDesc: { 
-            text: truncateText(property.description || 'Excelente oportunidad de inversión', 200) 
+            text: propertyDesc
           },
           PropertyPic2: { 
             image: property.images?.[1] || '' 
@@ -111,10 +187,10 @@ serve(async (req) => {
             image: property.images?.[2] || '' 
           },
           AgentPic: { 
-            image: profile?.user_avatar_url || profile?.agency_logo_url || '' 
+            image: profile?.user_avatar_url || '' 
           },
           AgentName: { 
-            text: profile?.full_name || 'Agente Inmobiliario' 
+            text: profile?.full_name || (userLanguage === 'en' ? 'Real Estate Agent' : 'Agente Inmobiliario')
           },
           AgentPhoneNumer: { 
             text: profile?.phone || '+34 XXX XXX XXX' 
@@ -123,10 +199,10 @@ serve(async (req) => {
             text: profile?.email || 'agente@kw.com' 
           },
           AgentAgency: { 
-            text: profile?.company || 'Keller Williams' 
+            image: profile?.agency_logo_url || ''
           },
           PropertyLocation: { 
-            text: truncateText(property.address || 'Ubicación privilegiada', 100) 
+            text: propertyLocation
           },
           PropertyHashtags: { 
             text: property.hashtags?.join(' ') || '#inmobiliaria #propiedad #venta' 
