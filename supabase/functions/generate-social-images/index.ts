@@ -136,7 +136,7 @@ serve(async (req) => {
       console.log('Placid payload:', JSON.stringify(payload, null, 2));
 
       const response = await fetch(
-        `https://api.placid.app/api/rest/v1/templates/${placidTemplateId}/create`,
+        `https://api.placid.app/api/rest/${placidTemplateId}`,
         {
           method: 'POST',
           headers: {
