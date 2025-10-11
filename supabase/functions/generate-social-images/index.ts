@@ -87,6 +87,7 @@ serve(async (req) => {
 
       // Build payload with layers mapped to property data
       const payload = {
+        create_now: true, // Process image instantly instead of queueing
         layers: {
           PropertyType: { 
             text: extractPropertyType(property.title) 
