@@ -12,8 +12,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/layout/app-layout";
-import { SocialMediaPublisher } from "@/components/social-media-publisher";
-import { GeneratedImagesPreview } from "@/components/generated-images-preview";
+import { SocialMediaPreview } from "@/components/social-media-preview";
 import { 
   Link, 
   Loader2, 
@@ -525,51 +524,62 @@ export default function PropertyProcessor() {
               </CardContent>
             </Card>
 
-            {/* Generated Images Preview */}
-            {propertyData && (generatedImages.instagram || propertyData.generated_image_instagram) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Imágenes Profesionales
-                  </CardTitle>
-                  <CardDescription>
-                    Imágenes optimizadas para cada red social
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GeneratedImagesPreview
-                    images={{
-                      instagram: generatedImages.instagram || propertyData.generated_image_instagram,
-                      stories: generatedImages.stories || propertyData.generated_image_stories,
-                      facebook: generatedImages.facebook || propertyData.generated_image_facebook
-                    }}
-                    onRegenerate={handleGenerateImages}
-                    isGenerating={generatingImages}
-                  />
-                </CardContent>
-              </Card>
-            )}
+            {/* Results Section - Only show final consolidated view */}
+            {propertyData && !processing && (
+              <div className="space-y-6">
+                {/* Success Header */}
+                <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                      <div>
+                        <h3 className="text-xl font-semibold text-green-900 dark:text-green-100">
+                          ¡Propiedad Procesada!
+                        </h3>
+                        <p className="text-green-700 dark:text-green-300">
+                          Contenido listo para compartir en redes sociales
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Social Media Publisher */}
-            {propertyData && profile && (
-              <SocialMediaPublisher 
-                propertyData={{
-                  id: propertyData.id || url,
-                  title: propertyData.title,
-                  description: propertyData.description,
-                  price: propertyData.price,
-                  address: propertyData.address,
-                  images: propertyData.images,
-                  facebook_content: propertyData.facebook_content || '',
-                  instagram_content: propertyData.instagram_content || '',
-                  tiktok_content: propertyData.tiktok_content || '',
-                  hashtags: [],
-                  agent_name: profile?.full_name || null,
-                  agent_phone: (profile as any)?.phone || null
-                }} 
-                profile={profile} 
-              />
+                {/* Social Media Previews */}
+                <div className="space-y-4">
+                  {selectedPlatforms.instagram && (
+                    <SocialMediaPreview
+                      platform="instagram"
+                      imageUrl={propertyData.generated_image_instagram}
+                      content={propertyData.instagram_content || ''}
+                      isConnected={!!(profile as any)?.instagram_connected}
+                      onPublish={() => {}}
+                      isPublishing={false}
+                    />
+                  )}
+
+                  {selectedPlatforms.facebook && (
+                    <SocialMediaPreview
+                      platform="facebook"
+                      imageUrl={propertyData.generated_image_facebook}
+                      content={propertyData.facebook_content || ''}
+                      isConnected={!!(profile as any)?.facebook_connected}
+                      onPublish={() => {}}
+                      isPublishing={false}
+                    />
+                  )}
+
+                  {selectedPlatforms.tiktok && (
+                    <SocialMediaPreview
+                      platform="tiktok"
+                      imageUrl={propertyData.images?.[0]}
+                      content={propertyData.tiktok_content || ''}
+                      isConnected={!!(profile as any)?.tiktok_connected}
+                      onPublish={() => {}}
+                      isPublishing={false}
+                    />
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>

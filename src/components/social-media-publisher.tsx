@@ -268,47 +268,6 @@ export const SocialMediaPublisher: React.FC<SocialMediaPublisherProps> = ({
       </CardHeader>
       <CardContent className="space-y-6">
         
-        {/* Generated Images Preview */}
-        {(propertyData.generated_image_facebook || propertyData.generated_image_instagram || propertyData.generated_image_stories) && (
-          <div className="border rounded-lg p-4 space-y-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-600" />
-              <h4 className="font-medium">Imágenes Profesionales Generadas</h4>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {propertyData.generated_image_instagram && (
-                <div className="space-y-2">
-                  <img 
-                    src={propertyData.generated_image_instagram} 
-                    alt="Instagram" 
-                    className="w-full rounded-lg shadow-md hover:shadow-xl transition-shadow"
-                  />
-                  <p className="text-xs text-center text-muted-foreground">Instagram Post</p>
-                </div>
-              )}
-              {propertyData.generated_image_stories && (
-                <div className="space-y-2">
-                  <img 
-                    src={propertyData.generated_image_stories} 
-                    alt="Stories" 
-                    className="w-full rounded-lg shadow-md hover:shadow-xl transition-shadow"
-                  />
-                  <p className="text-xs text-center text-muted-foreground">Instagram Stories</p>
-                </div>
-              )}
-              {propertyData.generated_image_facebook && (
-                <div className="space-y-2">
-                  <img 
-                    src={propertyData.generated_image_facebook} 
-                    alt="Facebook" 
-                    className="w-full rounded-lg shadow-md hover:shadow-xl transition-shadow"
-                  />
-                  <p className="text-xs text-center text-muted-foreground">Facebook Post</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         
         {/* Facebook Publishing */}
         <div className="border rounded-lg p-4 space-y-4">
