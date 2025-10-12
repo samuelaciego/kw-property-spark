@@ -5,9 +5,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SocialMediaPublisher } from "@/components/social-media-publisher";
-import { ArrowLeft, MapPin, DollarSign, Calendar, Eye } from "lucide-react";
+import { SocialMediaPreview } from "@/components/social-media-preview";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
 interface Property {
   id: string;
   title: string | null;
@@ -21,6 +22,9 @@ interface Property {
   facebook_content: string | null;
   instagram_content: string | null;
   tiktok_content: string | null;
+  facebook_image_url?: string | null;
+  instagram_image_url?: string | null;
+  tiktok_image_url?: string | null;
   hashtags: string[] | null;
   agent_name: string | null;
   agent_phone: string | null;
@@ -47,6 +51,65 @@ const PropertyDetail = () => {
   } = useToast();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+  const [publishingState, setPublishingState] = useState({
+    instagram: false,
+    facebook: false,
+    tiktok: false
+  });
+
+  const getPlatformPostUrl = (platform: string, postId: string): string | undefined => {
+    switch (platform) {
+      case 'facebook':
+        return `https://facebook.com/${postId}`;
+      case 'instagram':
+        return `https://instagram.com/p/${postId}`;
+      case 'tiktok':
+        return `https://tiktok.com/@username/video/${postId}`;
+      default:
+        return undefined;
+    }
+  };
+
+  const handlePublish = async (platform: 'instagram' | 'facebook' | 'tiktok') => {
+    if (!property) return;
+    
+    setPublishingState(prev => ({ ...prev, [platform]: true }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        `publish-${platform}`,
+        {
+          body: {
+            propertyId: property.id,
+            content: property[`${platform}_content`],
+            imageUrl: property[`${platform}_image_url`]
+          }
+        }
+      );
+      
+      if (error) throw error;
+      
+      setProperty(prev => prev ? {
+        ...prev,
+        [`${platform}_post_id`]: data.postId,
+        [`${platform}_published_at`]: new Date().toISOString()
+      } : null);
+      
+      toast({
+        title: "¡Publicado!",
+        description: `Contenido publicado exitosamente en ${platform}`
+      });
+    } catch (error) {
+      console.error(`Error publishing to ${platform}:`, error);
+      toast({
+        title: "Error",
+        description: `No se pudo publicar en ${platform}`,
+        variant: "destructive"
+      });
+    } finally {
+      setPublishingState(prev => ({ ...prev, [platform]: false }));
+    }
+  };
   useEffect(() => {
     if (!user || !id) return;
     const loadProperty = async () => {
@@ -105,129 +168,36 @@ const PropertyDetail = () => {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>{property.title || "Propiedad sin título"}</span>
-              
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {property.images && property.images.length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {property.images.map((image, index) => <img key={index} src={image} alt={`Imagen ${index + 1}`} className="rounded-lg object-cover w-full h-48" />)}
-              </div>}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Información de la Propiedad</h3>
-                
-                {property.address && <div className="flex items-start gap-2">
-                    <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="font-medium">Dirección</p>
-                      <p className="text-muted-foreground">{property.address}</p>
-                    </div>
-                  </div>}
-
-                {property.price && <div className="flex items-start gap-2">
-                    <DollarSign className="w-5 h-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="font-medium">Precio</p>
-                      <p className="text-muted-foreground">{property.price}</p>
-                    </div>
-                  </div>}
-
-                <div className="flex items-start gap-2">
-                  <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium">Fecha de creación</p>
-                    <p className="text-muted-foreground">
-                      {new Date(property.created_at).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-                </div>
-
-                {property.description && <div>
-                    <p className="font-medium mb-2">Descripción</p>
-                    <p className="text-muted-foreground">{property.description}</p>
-                  </div>}
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Información del Agente</h3>
-                
-                {property.agent_name && <div>
-                    <p className="font-medium">Nombre del Agente</p>
-                    <p className="text-muted-foreground">{property.agent_name}</p>
-                  </div>}
-
-                {property.agent_phone && <div>
-                    <p className="font-medium">Teléfono</p>
-                    <p className="text-muted-foreground">{property.agent_phone}</p>
-                  </div>}
-              </div>
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="mb-4 text-4xl">✅</div>
+              <h3 className="text-xl font-semibold mb-2">
+                ¡Contenido listo para compartir!
+              </h3>
+              <p className="text-muted-foreground">
+                Imágenes y textos generados para redes sociales
+              </p>
             </div>
-
-            {property.hashtags && property.hashtags.length > 0 && <div>
-                <h3 className="text-lg font-semibold mb-2">Hashtags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {property.hashtags.map((hashtag, index) => <span key={index} className="bg-primary/10 text-primary px-2 py-1 rounded-md text-sm">
-                      #{hashtag}
-                    </span>)}
-                </div>
-              </div>}
-
-            {/* Tracking de publicaciones en redes sociales */}
-            {(property.facebook_published_at || property.instagram_published_at || property.tiktok_published_at) && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Estado de Publicaciones</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {property.facebook_published_at && (
-                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                      <p className="font-medium text-blue-800">Facebook</p>
-                      <p className="text-sm text-blue-600">
-                        Publicado: {new Date(property.facebook_published_at).toLocaleDateString('es-ES')}
-                      </p>
-                      {property.facebook_post_id && (
-                        <p className="text-xs text-blue-500">ID: {property.facebook_post_id}</p>
-                      )}
-                    </div>
-                  )}
-                  {property.instagram_published_at && (
-                    <div className="bg-pink-50 border border-pink-200 p-3 rounded-lg">
-                      <p className="font-medium text-pink-800">Instagram</p>
-                      <p className="text-sm text-pink-600">
-                        Publicado: {new Date(property.instagram_published_at).toLocaleDateString('es-ES')}
-                      </p>
-                      {property.instagram_post_id && (
-                        <p className="text-xs text-pink-500">ID: {property.instagram_post_id}</p>
-                      )}
-                    </div>
-                  )}
-                  {property.tiktok_published_at && (
-                    <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                      <p className="font-medium text-gray-800">TikTok</p>
-                      <p className="text-sm text-gray-600">
-                        Creado: {new Date(property.tiktok_published_at).toLocaleDateString('es-ES')}
-                      </p>
-                      {property.tiktok_video_id && (
-                        <p className="text-xs text-gray-500">ID: {property.tiktok_video_id}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* SocialMediaPublisher Component */}
-        {profile && property && (
-          <SocialMediaPublisher 
-            propertyData={property} 
-            profile={profile} 
+        {(['instagram', 'facebook', 'tiktok'] as const).map(platform => (
+          <SocialMediaPreview
+            key={platform}
+            platform={platform}
+            imageUrl={property[`${platform}_image_url`] || undefined}
+            content={property[`${platform}_content`] || ''}
+            isConnected={(profile as any)?.[`${platform}_connected`] || false}
+            onPublish={() => handlePublish(platform)}
+            isPublishing={publishingState[platform]}
+            publishSuccess={property[`${platform}_published_at`] !== null}
+            publishUrl={property[`${platform}_post_id`] 
+              ? getPlatformPostUrl(platform, property[`${platform}_post_id`])
+              : undefined
+            }
           />
-        )}
+        ))}
       </div>
     </AppLayout>;
 };
