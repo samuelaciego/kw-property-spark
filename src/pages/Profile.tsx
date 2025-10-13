@@ -53,7 +53,7 @@ export default function Profile() {
       setFormData({
         full_name: profile.full_name || "",
         company: profile.company || "",
-        avatar_url: profile.avatar_url || "",
+        avatar_url: (profile as any).agency_logo_url || "",
         country: (profile as any).country || "",
         city: (profile as any).city || "",
         phone: (profile as any).phone || "",
@@ -121,10 +121,10 @@ export default function Profile() {
         .from('agency-logos')
         .getPublicUrl(fileName);
 
-      // Actualizar inmediatamente en la base de datos
+      // Actualizar el campo agency_logo_url en la base de datos
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: data.publicUrl })
+        .update({ agency_logo_url: data.publicUrl })
         .eq('user_id', profile.user_id);
 
       if (updateError) throw updateError;
