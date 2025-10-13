@@ -21,10 +21,8 @@ interface Property {
   views: number | null;
   facebook_content: string | null;
   instagram_content: string | null;
-  tiktok_content: string | null;
   generated_image_facebook?: string | null;
   generated_image_instagram?: string | null;
-  generated_image_stories?: string | null;
   hashtags: string[] | null;
   agent_name: string | null;
   agent_phone: string | null;
@@ -78,8 +76,7 @@ const PropertyDetail = () => {
     try {
       const imageUrlMap = {
         instagram: property.generated_image_instagram,
-        facebook: property.generated_image_facebook,
-        tiktok: property.generated_image_stories
+        facebook: property.generated_image_facebook
       };
       
       const { data, error } = await supabase.functions.invoke(
@@ -188,11 +185,10 @@ const PropertyDetail = () => {
           </CardContent>
         </Card>
 
-        {(['instagram', 'facebook', 'tiktok'] as const).map(platform => {
+        {(['instagram', 'facebook'] as const).map(platform => {
           const imageUrlMap = {
             instagram: property.generated_image_instagram,
-            facebook: property.generated_image_facebook,
-            tiktok: property.generated_image_stories
+            facebook: property.generated_image_facebook
           };
           
           return (

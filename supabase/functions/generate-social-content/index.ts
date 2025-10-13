@@ -22,35 +22,23 @@ serve(async (req) => {
 
     // Platform-specific prompts
     const prompts = {
-      facebook: `Crea una descripción profesional de esta propiedad inmobiliaria para Facebook. Incluye:
-- Características principales de la propiedad
+      facebook: `Crea una descripción CORTA (máximo 150 palabras) de esta propiedad para Facebook. Incluye:
+- 2-3 características principales
 - Precio y ubicación
-- Call-to-action para agentes inmobiliarios
-- Tono profesional y confiable
+- Call-to-action breve
+- 3-4 hashtags (#InmobiliariaKW #Propiedad #[Ciudad])
+- Tono profesional
 
 Propiedad: ${propertyData.title}
 Descripción: ${propertyData.description}
 Precio: ${propertyData.price}
 Dirección: ${propertyData.address}`,
 
-      instagram: `Genera un caption atractivo para Instagram de esta propiedad inmobiliaria. Incluye:
-- Descripción visual y aspiracional
-- 8-10 hashtags inmobiliarios relevantes
-- Emojis apropiados
-- Tono inspiracional y moderno
-- Máximo 2200 caracteres
-
-Propiedad: ${propertyData.title}
-Descripción: ${propertyData.description}
-Precio: ${propertyData.price}
-Dirección: ${propertyData.address}`,
-
-      tiktok: `Crea un título dinámico y descripción corta para un video de TikTok sobre esta propiedad inmobiliaria. Incluye:
-- Título llamativo y moderno
-- Descripción breve y impactante
-- Hashtags trending de inmobiliaria
-- Lenguaje juvenil y dinámico
-- Máximo 2200 caracteres
+      instagram: `Genera un caption CORTO para Instagram (máximo 120 palabras). Incluye:
+- Descripción visual y atractiva (60 palabras máx)
+- 5-6 hashtags relevantes (#InmobiliariaKW #[TipoPropiedad] #[Ciudad])
+- 2-3 emojis apropiados
+- Tono inspiracional
 
 Propiedad: ${propertyData.title}
 Descripción: ${propertyData.description}

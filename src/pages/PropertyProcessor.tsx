@@ -38,9 +38,7 @@ interface PropertyData {
   images: string[];
   facebook_content?: string;
   instagram_content?: string;
-  tiktok_content?: string;
   generated_image_instagram?: string;
-  generated_image_stories?: string;
   generated_image_facebook?: string;
   agent: {
     name: string;
@@ -59,13 +57,11 @@ export default function PropertyProcessor() {
   const [publicationType, setPublicationType] = useState("en-venta");
   const [selectedPlatforms, setSelectedPlatforms] = useState({
     facebook: true,
-    instagram: true,
-    tiktok: true
+    instagram: true
   });
   const [generatingImages, setGeneratingImages] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<{
     instagram?: string;
-    stories?: string;
     facebook?: string;
   }>({});
 
@@ -190,16 +186,13 @@ export default function PropertyProcessor() {
         address: extractedData.address
       };
 
-      // Generate content for all three platforms in parallel
-      const [facebookResult, instagramResult, tiktokResult] = await Promise.all([
+      // Generate content for Facebook and Instagram in parallel
+      const [facebookResult, instagramResult] = await Promise.all([
         supabase.functions.invoke('generate-social-content', {
           body: { platform: 'facebook', propertyData: propertyForAI }
         }),
         supabase.functions.invoke('generate-social-content', {
           body: { platform: 'instagram', propertyData: propertyForAI }
-        }),
-        supabase.functions.invoke('generate-social-content', {
-          body: { platform: 'tiktok', propertyData: propertyForAI }
         })
       ]);
 
@@ -219,7 +212,6 @@ export default function PropertyProcessor() {
         images: extractedData.images || [],
         facebook_content: facebookResult.data?.generatedContent || null,
         instagram_content: instagramResult.data?.generatedContent || null,
-        tiktok_content: tiktokResult.data?.generatedContent || null,
         hashtags: ["#CasaEnVenta", "#KellerWilliams", "#BienesRaices"],
         status: "processed"
       };
@@ -264,9 +256,8 @@ export default function PropertyProcessor() {
           });
         } else {
           setGeneratedImages({
-            instagram: imagesData.images.instagramUrl,
-            stories: imagesData.images.storiesUrl,
-            facebook: imagesData.images.facebookUrl
+            instagram: imagesData.images.instagram,
+            facebook: imagesData.images.facebook
           });
           
           // Set property data with all the data including generated images
@@ -275,10 +266,8 @@ export default function PropertyProcessor() {
             id: insertedProperty.id,
             facebook_content: insertedProperty.facebook_content,
             instagram_content: insertedProperty.instagram_content,
-            tiktok_content: insertedProperty.tiktok_content,
-            generated_image_instagram: imagesData.images.instagramUrl,
-            generated_image_stories: imagesData.images.storiesUrl,
-            generated_image_facebook: imagesData.images.facebookUrl
+            generated_image_instagram: imagesData.images.instagram,
+            generated_image_facebook: imagesData.images.facebook
           });
           
           toast({
@@ -294,7 +283,6 @@ export default function PropertyProcessor() {
             id: insertedProperty.id,
             facebook_content: insertedProperty.facebook_content,
             instagram_content: insertedProperty.instagram_content,
-            tiktok_content: insertedProperty.tiktok_content,
           });
         }
       } catch (imgError) {
@@ -310,7 +298,6 @@ export default function PropertyProcessor() {
           id: insertedProperty.id,
           facebook_content: insertedProperty.facebook_content,
           instagram_content: insertedProperty.instagram_content,
-          tiktok_content: insertedProperty.tiktok_content,
         });
       }
 
@@ -356,7 +343,6 @@ export default function PropertyProcessor() {
         setPropertyData(prev => prev ? {
           ...prev,
           generated_image_instagram: data.images.instagram,
-          generated_image_stories: data.images.stories,
           generated_image_facebook: data.images.facebook
         } : null);
 
@@ -475,19 +461,6 @@ export default function PropertyProcessor() {
                         Instagram
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="tiktok"
-                        checked={selectedPlatforms.tiktok}
-                        onCheckedChange={(checked) => 
-                          setSelectedPlatforms(prev => ({ ...prev, tiktok: checked as boolean }))
-                        }
-                        disabled={processing}
-                      />
-                      <Label htmlFor="tiktok" className="font-normal cursor-pointer">
-                        TikTok
-                      </Label>
-                    </div>
                   </div>
                 </div>
 
@@ -563,17 +536,6 @@ export default function PropertyProcessor() {
                       imageUrl={propertyData.generated_image_facebook}
                       content={propertyData.facebook_content || ''}
                       isConnected={!!(profile as any)?.facebook_connected}
-                      onPublish={() => {}}
-                      isPublishing={false}
-                    />
-                  )}
-
-                  {selectedPlatforms.tiktok && (
-                    <SocialMediaPreview
-                      platform="tiktok"
-                      imageUrl={propertyData.images?.[0]}
-                      content={propertyData.tiktok_content || ''}
-                      isConnected={!!(profile as any)?.tiktok_connected}
                       onPublish={() => {}}
                       isPublishing={false}
                     />
