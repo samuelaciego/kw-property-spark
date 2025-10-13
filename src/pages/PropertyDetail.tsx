@@ -22,9 +22,9 @@ interface Property {
   facebook_content: string | null;
   instagram_content: string | null;
   tiktok_content: string | null;
-  facebook_image_url?: string | null;
-  instagram_image_url?: string | null;
-  tiktok_image_url?: string | null;
+  generated_image_facebook?: string | null;
+  generated_image_instagram?: string | null;
+  generated_image_stories?: string | null;
   hashtags: string[] | null;
   agent_name: string | null;
   agent_phone: string | null;
@@ -76,13 +76,19 @@ const PropertyDetail = () => {
     setPublishingState(prev => ({ ...prev, [platform]: true }));
     
     try {
+      const imageUrlMap = {
+        instagram: property.generated_image_instagram,
+        facebook: property.generated_image_facebook,
+        tiktok: property.generated_image_stories
+      };
+      
       const { data, error } = await supabase.functions.invoke(
         `publish-${platform}`,
         {
           body: {
             propertyId: property.id,
             content: property[`${platform}_content`],
-            imageUrl: property[`${platform}_image_url`]
+            imageUrl: imageUrlMap[platform]
           }
         }
       );
@@ -182,22 +188,30 @@ const PropertyDetail = () => {
           </CardContent>
         </Card>
 
-        {(['instagram', 'facebook', 'tiktok'] as const).map(platform => (
-          <SocialMediaPreview
-            key={platform}
-            platform={platform}
-            imageUrl={property[`${platform}_image_url`] || undefined}
-            content={property[`${platform}_content`] || ''}
-            isConnected={(profile as any)?.[`${platform}_connected`] || false}
-            onPublish={() => handlePublish(platform)}
-            isPublishing={publishingState[platform]}
-            publishSuccess={property[`${platform}_published_at`] !== null}
-            publishUrl={property[`${platform}_post_id`] 
-              ? getPlatformPostUrl(platform, property[`${platform}_post_id`])
-              : undefined
-            }
-          />
-        ))}
+        {(['instagram', 'facebook', 'tiktok'] as const).map(platform => {
+          const imageUrlMap = {
+            instagram: property.generated_image_instagram,
+            facebook: property.generated_image_facebook,
+            tiktok: property.generated_image_stories
+          };
+          
+          return (
+            <SocialMediaPreview
+              key={platform}
+              platform={platform}
+              imageUrl={imageUrlMap[platform] || undefined}
+              content={property[`${platform}_content`] || ''}
+              isConnected={(profile as any)?.[`${platform}_connected`] || false}
+              onPublish={() => handlePublish(platform)}
+              isPublishing={publishingState[platform]}
+              publishSuccess={property[`${platform}_published_at`] !== null}
+              publishUrl={property[`${platform}_post_id`] 
+                ? getPlatformPostUrl(platform, property[`${platform}_post_id`])
+                : undefined
+              }
+            />
+          );
+        })}
       </div>
     </AppLayout>;
 };
