@@ -13,6 +13,9 @@ import PropertyProcessor from "./pages/PropertyProcessor";
 import Profile from "./pages/Profile";
 import Plans from "./pages/Plans";
 import PropertyDetail from "./pages/PropertyDetail";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +56,9 @@ const App = () => (
                   <PropertyDetail />
                 </ProtectedRoute>
               } />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/cookies" element={<Cookies />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

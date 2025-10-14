@@ -83,9 +83,9 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-background/20 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-background/60">
           <div className="flex space-x-6 mb-4 md:mb-0">
-            <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-            <a href="#" className="hover:text-white transition-colors">Términos</a>
-            <a href="#" className="hover:text-white transition-colors">Cookies</a>
+            <a href="/privacy" className="hover:text-white transition-colors">Privacidad</a>
+            <a href="/terms" className="hover:text-white transition-colors">Términos</a>
+            <a href="/cookies" className="hover:text-white transition-colors">Cookies</a>
           </div>
           <div>
             <span>Hecho con ❤️ para agentes inmobiliarios</span>
