@@ -163,7 +163,7 @@ const PropertyDetail = () => {
       </AppLayout>;
   }
   return <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
         <div className="flex items-center justify-between">
           <Button variant="outline" onClick={() => navigate("/dashboard")} className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />

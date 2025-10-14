@@ -234,16 +234,16 @@ export default function Profile() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t.profileTitle}</h1>
-          <p className="text-muted-foreground">
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">{t.profileTitle}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {t.personalInformation}
           </p>
         </div>
 
         <div className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             {/* Información Personal */}
             <Card>
             <CardHeader>

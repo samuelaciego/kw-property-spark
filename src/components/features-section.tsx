@@ -56,7 +56,7 @@ export function FeaturesSection() {
   ];
   
   return (
-    <section id="features" className="py-20 bg-gradient-to-b from-background to-muted/20">
+    <section id="features" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -64,19 +64,19 @@ export function FeaturesSection() {
             <Sparkles className="h-4 w-4 text-primary mr-2" />
             <span className="text-sm font-medium text-primary">{t.mainFeatures}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             {t.everythingYouNeed}{" "}
             <span className="bg-gradient-hero bg-clip-text text-transparent">
               {t.toStandOut}
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             {t.featuresDescription}
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
           {features.map((feature, index) => (
             <Card 
               key={index} 
@@ -100,11 +100,11 @@ export function FeaturesSection() {
         </div>
 
         {/* Process Flow */}
-        <div className="bg-gradient-card rounded-2xl p-8 border border-border/50 shadow-card">
-          <h3 className="text-2xl font-bold text-center text-foreground mb-8">
+        <div className="bg-gradient-card rounded-2xl p-6 sm:p-8 border border-border/50 shadow-card">
+          <h3 className="text-xl sm:text-2xl font-bold text-center text-foreground mb-8">
             {t.simpleProcess}
           </h3>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center mx-auto mb-4">
                 <Link className="h-8 w-8 text-white" />

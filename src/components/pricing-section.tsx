@@ -66,7 +66,7 @@ export function PricingSection() {
   ];
   
   return (
-    <section id="pricing" className="py-20 bg-gradient-to-b from-muted/20 to-background">
+    <section id="pricing" className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-muted/20 to-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -74,19 +74,19 @@ export function PricingSection() {
             <Star className="h-4 w-4 text-primary mr-2" />
             <span className="text-sm font-medium text-primary">{t.plansAndPricing}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             {t.choosePerfectPlan}{" "}
             <span className="bg-gradient-hero bg-clip-text text-transparent">
               {t.forYourBusiness}
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             {t.pricingDescription}
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto mb-16">
           {plans.map((plan, index) => (
             <Card 
               key={index}
@@ -147,11 +147,11 @@ export function PricingSection() {
         </div>
 
         {/* FAQ Section */}
-        <div className="bg-gradient-card rounded-2xl p-8 border border-border/50 shadow-card max-w-4xl mx-auto">
-          <h3 className="text-2xl font-bold text-center text-foreground mb-8">
+        <div className="bg-gradient-card rounded-2xl p-6 sm:p-8 border border-border/50 shadow-card max-w-4xl mx-auto">
+          <h3 className="text-xl sm:text-2xl font-bold text-center text-foreground mb-8">
             {t.frequentQuestions}
           </h3>
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <div>
               <h4 className="font-semibold text-foreground mb-2">¿Hay período de prueba?</h4>
               <p className="text-muted-foreground text-sm">

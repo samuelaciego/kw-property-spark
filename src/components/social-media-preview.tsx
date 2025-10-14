@@ -125,8 +125,8 @@ export const SocialMediaPreview = ({
         </div>
       </div>
       
-      <CardContent className="p-4">
-        <div className="grid md:grid-cols-2 gap-6">
+      <CardContent className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Image Preview */}
           <div className="space-y-3">
             {imageUrl ? (
@@ -134,7 +134,7 @@ export const SocialMediaPreview = ({
                 <img 
                   src={imageUrl} 
                   alt={`${config.name} preview`}
-                  className="w-full rounded-lg shadow-md border"
+                  className="w-full max-h-96 object-contain rounded-lg shadow-md border"
                 />
                 <Button
                   onClick={handleDownloadImage}
@@ -159,12 +159,13 @@ export const SocialMediaPreview = ({
               <p className="text-sm whitespace-pre-wrap">{content || 'Sin contenido generado'}</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-2">
               <Button
                 onClick={handleCopyContent}
                 variant="outline"
                 size="sm"
                 disabled={!content}
+                className="w-full"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar texto
@@ -174,6 +175,7 @@ export const SocialMediaPreview = ({
                 onClick={onPublish}
                 disabled={!isConnected || isPublishing || !content}
                 size="sm"
+                className="w-full"
               >
                 {isPublishing ? (
                   <>

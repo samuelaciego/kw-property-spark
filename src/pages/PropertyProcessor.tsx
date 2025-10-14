@@ -368,16 +368,16 @@ export default function PropertyProcessor() {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-background border-b border-border">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Procesar Propiedad</h1>
-              <p className="text-muted-foreground">Extrae datos y genera contenido automáticamente</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Procesar Propiedad</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Extrae datos y genera contenido automáticamente</p>
             </div>
           </div>
         </header>
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="max-w-4xl mx-auto space-y-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
             
             {/* URL Input Section */}
             <Card className="bg-gradient-card border-border/50">
@@ -484,8 +484,8 @@ export default function PropertyProcessor() {
 
                 {processing && (
                   <div className="space-y-2">
-                    <Progress value={progress} className="w-full" />
-                    <p className="text-sm text-muted-foreground text-center">
+                    <Progress value={progress} className="w-full h-2 sm:h-3" />
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center">
                       {progress < 20 && "Validando URL..."}
                       {progress >= 20 && progress < 40 && "Extrayendo datos..."}
                       {progress >= 40 && progress < 60 && "Analizando imágenes..."}
