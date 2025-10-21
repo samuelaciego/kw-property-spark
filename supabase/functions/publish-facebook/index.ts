@@ -1,5 +1,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { corsHeaders } from '../_shared/cors.ts'
+
+// Input validation schema
+const PublishDataSchema = z.object({
+  propertyId: z.string().uuid(),
+  imageUrls: z.array(z.string().url()).max(10),
+  caption: z.string().min(1).max(5000).trim(),
+  hashtags: z.array(z.string().regex(/^#[\w]+$/)).max(30)
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -7,7 +16,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { propertyId, imageUrls, caption, hashtags } = await req.json()
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = PublishDataSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: validationResult.error.issues
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { propertyId, imageUrls, caption, hashtags } = validationResult.data;
     
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,

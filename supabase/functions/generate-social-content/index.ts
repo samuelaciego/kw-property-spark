@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,19 @@ const corsHeaders = {
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
+// Input validation schemas
+const PropertyDataSchema = z.object({
+  title: z.string().min(1).max(200).trim(),
+  description: z.string().min(1).max(2000).trim(),
+  price: z.string().min(1).max(100).trim(),
+  address: z.string().min(1).max(300).trim()
+});
+
+const RequestSchema = z.object({
+  platform: z.enum(['facebook', 'instagram']),
+  propertyData: PropertyDataSchema
+});
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,7 +28,21 @@ serve(async (req) => {
   }
 
   try {
-    const { platform, propertyData } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = RequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input data',
+          details: validationResult.error.issues
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { platform, propertyData } = validationResult.data;
 
     if (!GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY not configured');

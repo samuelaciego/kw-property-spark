@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { corsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -7,6 +8,11 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const placidApiToken = Deno.env.get('PLACID_API_TOKEN');
 const placidTemplateId = Deno.env.get('KW_IG_POST_01');
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+
+// Input validation schema
+const RequestSchema = z.object({
+  propertyId: z.string().uuid()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -37,7 +43,22 @@ serve(async (req) => {
     }
     
     console.log('Placid credentials validated successfully');
-    const { propertyId } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = RequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid property ID',
+          details: validationResult.error.issues
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { propertyId } = validationResult.data;
     console.log('Generating social images for property:', propertyId);
 
     const supabase = createClient(supabaseUrl, supabaseKey);

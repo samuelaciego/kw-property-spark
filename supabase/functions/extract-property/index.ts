@@ -1,3 +1,6 @@
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -16,6 +19,11 @@ interface PropertyData {
   };
 }
 
+// Input validation schema
+const RequestSchema = z.object({
+  url: z.string().url().max(2000)
+});
+
 Deno.serve(async (req) => {
   console.log('Edge function called with method:', req.method);
   
@@ -25,12 +33,47 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('Processing request...');
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Processing request for authenticated user:', user.id);
     
     const body = await req.json();
-    console.log('Request body:', body);
     
-    const { url } = body;
+    // Validate input
+    const validationResult = RequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid input',
+          details: validationResult.error.issues
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { url } = validationResult.data;
     
     if (!url) {
       console.log('No URL provided in request');
