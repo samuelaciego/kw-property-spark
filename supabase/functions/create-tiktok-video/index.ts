@@ -25,14 +25,25 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabaseUser.auth.getUser()
     if (!user) throw new Error('No authenticated user')
 
-    // Get user's TikTok credentials
+    // Get user's TikTok connection status
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('tiktok_access_token')
+      .select('tiktok_connected')
       .eq('user_id', user.id)
       .single()
 
-    if (!profile?.tiktok_access_token) {
+    if (!profile?.tiktok_connected) {
+      throw new Error('TikTok no conectado')
+    }
+
+    // Retrieve TikTok access token securely from Vault
+    const { data: tiktokToken, error: tokenError } = await supabaseAdmin.rpc('get_oauth_token', {
+      _user_id: user.id,
+      _provider: 'tiktok'
+    })
+
+    if (tokenError || !tiktokToken) {
+      console.error('Failed to retrieve TikTok token:', tokenError);
       throw new Error('TikTok no conectado')
     }
 
@@ -50,7 +61,7 @@ Deno.serve(async (req) => {
     const initResponse = await fetch('https://open.tiktokapis.com/v2/post/publish/video/init/', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${profile.tiktok_access_token}`,
+        'Authorization': `Bearer ${tiktokToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

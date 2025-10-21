@@ -48,14 +48,25 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabaseUser.auth.getUser()
     if (!user) throw new Error('No authenticated user')
 
-    // Get user's Facebook credentials
+    // Get user's Facebook page ID from profile
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('facebook_access_token, facebook_page_id')
+      .select('facebook_page_id, facebook_connected')
       .eq('user_id', user.id)
       .single()
 
-    if (!profile?.facebook_access_token || !profile?.facebook_page_id) {
+    if (!profile?.facebook_connected || !profile?.facebook_page_id) {
+      throw new Error('Facebook no conectado')
+    }
+
+    // Retrieve Facebook access token securely from Vault
+    const { data: facebookToken, error: tokenError } = await supabaseAdmin.rpc('get_oauth_token', {
+      _user_id: user.id,
+      _provider: 'facebook'
+    })
+
+    if (tokenError || !facebookToken) {
+      console.error('Failed to retrieve Facebook token:', tokenError);
       throw new Error('Facebook no conectado')
     }
 
@@ -80,7 +91,7 @@ Deno.serve(async (req) => {
             body: new URLSearchParams({
               url: imageUrl,
               published: 'false',
-              access_token: profile.facebook_access_token
+              access_token: facebookToken
             })
           }
         )
@@ -102,7 +113,7 @@ Deno.serve(async (req) => {
           body: new URLSearchParams({
             message: fullMessage,
             attached_media: JSON.stringify(photoIds),
-            access_token: profile.facebook_access_token
+            access_token: facebookToken
           })
         }
       )
@@ -119,7 +130,7 @@ Deno.serve(async (req) => {
           body: new URLSearchParams({
             url: imageUrls[0],
             message: fullMessage,
-            access_token: profile.facebook_access_token
+            access_token: facebookToken
           })
         }
       )
@@ -135,7 +146,7 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
             message: fullMessage,
-            access_token: profile.facebook_access_token
+            access_token: facebookToken
           })
         }
       )

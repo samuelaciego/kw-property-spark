@@ -48,14 +48,25 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabaseUser.auth.getUser()
     if (!user) throw new Error('No authenticated user')
 
-    // Get user's Instagram credentials
+    // Get user's Instagram account ID from profile
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('instagram_access_token, instagram_account_id')
+      .select('instagram_account_id, instagram_connected')
       .eq('user_id', user.id)
       .single()
 
-    if (!profile?.instagram_access_token || !profile?.instagram_account_id) {
+    if (!profile?.instagram_connected || !profile?.instagram_account_id) {
+      throw new Error('Instagram no conectado')
+    }
+
+    // Retrieve Instagram access token securely from Vault
+    const { data: instagramToken, error: tokenError } = await supabaseAdmin.rpc('get_oauth_token', {
+      _user_id: user.id,
+      _provider: 'instagram'
+    })
+
+    if (tokenError || !instagramToken) {
+      console.error('Failed to retrieve Instagram token:', tokenError);
       throw new Error('Instagram no conectado')
     }
 
@@ -74,7 +85,7 @@ Deno.serve(async (req) => {
         body: new URLSearchParams({
           image_url: imageUrl,
           caption: fullCaption,
-          access_token: profile.instagram_access_token
+          access_token: instagramToken
         })
       }
     )
@@ -95,7 +106,7 @@ Deno.serve(async (req) => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           creation_id: mediaData.id,
-          access_token: profile.instagram_access_token
+          access_token: instagramToken
         })
       }
     )

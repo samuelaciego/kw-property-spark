@@ -177,15 +177,28 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Store tokens in user's profile (supabaseService already created above)
+      // Store tokens securely in Vault using SECURITY DEFINER functions
+      await supabaseService.rpc('store_oauth_token', {
+        _user_id: userId,
+        _provider: 'facebook',
+        _token: tokenData.access_token
+      });
+
+      if (instagramAccounts.length > 0 && instagramAccounts[0]?.access_token) {
+        await supabaseService.rpc('store_oauth_token', {
+          _user_id: userId,
+          _provider: 'instagram',
+          _token: instagramAccounts[0].access_token
+        });
+      }
+
+      // Update profile with connection status and account IDs only
       await supabaseService
         .from('profiles')
         .update({
           facebook_connected: true,
-          facebook_access_token: tokenData.access_token,
           facebook_page_id: pagesData.data?.[0]?.id,
           instagram_connected: instagramAccounts.length > 0,
-          instagram_access_token: instagramAccounts[0]?.access_token,
           instagram_account_id: instagramAccounts[0]?.id
         })
         .eq('user_id', userId)

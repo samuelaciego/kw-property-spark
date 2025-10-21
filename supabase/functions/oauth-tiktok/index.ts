@@ -159,12 +159,18 @@ Deno.serve(async (req) => {
       })
       const userData = await userResponse.json()
 
-      // Store tokens in user's profile (supabaseService already created above)
+      // Store token securely in Vault using SECURITY DEFINER function
+      await supabaseService.rpc('store_oauth_token', {
+        _user_id: userId,
+        _provider: 'tiktok',
+        _token: tokenData.access_token
+      });
+
+      // Update profile with connection status and username only
       await supabaseService
         .from('profiles')
         .update({
           tiktok_connected: true,
-          tiktok_access_token: tokenData.access_token,
           tiktok_username: userData.data?.user?.display_name || userData.data?.user?.username
         })
         .eq('user_id', userId)

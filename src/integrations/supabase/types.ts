@@ -50,19 +50,16 @@ export type Database = {
           country: string | null
           created_at: string
           email: string
-          facebook_access_token: string | null
           facebook_connected: boolean | null
           facebook_page_id: string | null
           full_name: string | null
           id: string
-          instagram_access_token: string | null
           instagram_account_id: string | null
           instagram_connected: boolean | null
           language: string | null
           monthly_limit: number | null
           phone: string | null
           plan: string | null
-          tiktok_access_token: string | null
           tiktok_connected: boolean | null
           tiktok_username: string | null
           timezone: string | null
@@ -79,19 +76,16 @@ export type Database = {
           country?: string | null
           created_at?: string
           email: string
-          facebook_access_token?: string | null
           facebook_connected?: boolean | null
           facebook_page_id?: string | null
           full_name?: string | null
           id?: string
-          instagram_access_token?: string | null
           instagram_account_id?: string | null
           instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
           phone?: string | null
           plan?: string | null
-          tiktok_access_token?: string | null
           tiktok_connected?: boolean | null
           tiktok_username?: string | null
           timezone?: string | null
@@ -108,19 +102,16 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string
-          facebook_access_token?: string | null
           facebook_connected?: boolean | null
           facebook_page_id?: string | null
           full_name?: string | null
           id?: string
-          instagram_access_token?: string | null
           instagram_account_id?: string | null
           instagram_connected?: boolean | null
           language?: string | null
           monthly_limit?: number | null
           phone?: string | null
           plan?: string | null
-          tiktok_access_token?: string | null
           tiktok_connected?: boolean | null
           tiktok_username?: string | null
           timezone?: string | null
@@ -228,6 +219,18 @@ export type Database = {
     Functions: {
       cleanup_expired_oauth_states: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      delete_oauth_token: {
+        Args: { _provider: string; _user_id: string }
+        Returns: undefined
+      }
+      get_oauth_token: {
+        Args: { _provider: string; _user_id: string }
+        Returns: string
+      }
+      store_oauth_token: {
+        Args: { _provider: string; _token: string; _user_id: string }
         Returns: undefined
       }
     }
