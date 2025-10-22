@@ -217,10 +217,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_expired_oauth_states: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_oauth_states: { Args: never; Returns: undefined }
       delete_oauth_token: {
         Args: { _provider: string; _user_id: string }
         Returns: undefined
