@@ -4,7 +4,7 @@ import {
   Link, 
   Image, 
   FileText, 
-  Video, 
+  Mail, 
   BarChart3, 
   Shield, 
   Zap, 
@@ -36,10 +36,16 @@ export function FeaturesSection() {
       color: "text-warning"
     },
     {
-      icon: Video,
-      title: t.automaticVideosTitle,
-      description: t.automaticVideosDesc,
+      icon: FileText,
+      title: t.printedMaterialsTitle,
+      description: t.printedMaterialsDesc,
       color: "text-primary"
+    },
+    {
+      icon: Mail,
+      title: t.emailSignaturesTitle,
+      description: t.emailSignaturesDesc,
+      color: "text-accent"
     },
     {
       icon: BarChart3,

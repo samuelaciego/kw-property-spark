@@ -33,7 +33,8 @@ export function PricingSection() {
       icon: Star,
       features: [
         "200 propiedades por mes",
-        "Imágenes + Videos automáticos",
+        "Imágenes profesionales",
+        "Material impreso y firmas",
         "Contenido optimizado con IA",
         "Branding personalizado",
         "Soporte prioritario",

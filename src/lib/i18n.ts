@@ -81,11 +81,11 @@ export interface Translations {
   heroSubtitle: string;
   automaticExtraction: string;
   aiContent: string;
-  automaticVideos: string;
+  printedMaterials: string;
+  emailSignatures: string;
   startFreeTrial: string;
   goToDashboard: string;
   processProperties: string;
-  seeDemo: string;
   trustedBy: string;
   officialPartner: string;
   
@@ -110,8 +110,10 @@ export interface Translations {
   socialImagesDesc: string;
   optimizedContent: string;
   optimizedContentDesc: string;
-  automaticVideosTitle: string;
-  automaticVideosDesc: string;
+  printedMaterialsTitle: string;
+  printedMaterialsDesc: string;
+  emailSignaturesTitle: string;
+  emailSignaturesDesc: string;
   controlPanel: string;
   controlPanelDesc: string;
   secureReliable: string;
@@ -228,11 +230,11 @@ const translations: Record<Language, Translations> = {
     heroSubtitle: 'Extract property data automatically and generate professional social media content in seconds.',
     automaticExtraction: 'Automatic Extraction',
     aiContent: 'AI Content',
-    automaticVideos: 'Automatic Videos',
+    printedMaterials: 'Printed Materials',
+    emailSignatures: 'Email Signatures',
     startFreeTrial: 'Start Free Trial',
     goToDashboard: 'Go to Dashboard',
     processProperties: 'Process Properties',
-    seeDemo: 'See Demo',
     trustedBy: 'Trusted by over 1,000+ real estate agents',
     officialPartner: 'Official Partner',
     
@@ -247,7 +249,7 @@ const translations: Record<Language, Translations> = {
     aiProcessing: '2. AI Processing',
     aiProcessingDesc: 'Our system extracts and processes all information automatically',
     readyContent: '3. Ready Content',
-    readyContentDesc: 'Download images, videos and texts optimized for social media',
+    readyContentDesc: 'Download images and texts optimized for social media, print materials and email signatures',
     tryFeatures: 'Try Features',
     
     // Features
@@ -257,8 +259,10 @@ const translations: Record<Language, Translations> = {
     socialImagesDesc: 'Automatically generate professional images for Instagram and Facebook with personalized agent branding.',
     optimizedContent: 'Optimized Content',
     optimizedContentDesc: 'Create texts with relevant hashtags and effective calls to action to maximize engagement.',
-    automaticVideosTitle: 'Automatic Videos',
-    automaticVideosDesc: 'Produce professional short videos combining property photos with persuasive text.',
+    printedMaterialsTitle: 'Printed Materials',
+    printedMaterialsDesc: 'Generate professional flyers, brochures and property sheets ready to print.',
+    emailSignaturesTitle: 'Email Signatures',
+    emailSignaturesDesc: 'Create elegant and professional email signatures with your property information.',
     controlPanel: 'Control Panel',
     controlPanelDesc: 'Access a complete history of all processed properties and performance metrics.',
     secureReliable: 'Secure and Reliable',
@@ -373,11 +377,11 @@ const translations: Record<Language, Translations> = {
     heroSubtitle: 'Extrae datos de propiedades automáticamente y genera contenido profesional para redes sociales en segundos.',
     automaticExtraction: 'Extracción Automática',
     aiContent: 'Contenido IA',
-    automaticVideos: 'Videos Automáticos',
+    printedMaterials: 'Material Impreso',
+    emailSignatures: 'Firmas de Correo',
     startFreeTrial: 'Comenzar Prueba Gratuita',
     goToDashboard: 'Ir al Dashboard',
     processProperties: 'Procesar Propiedades',
-    seeDemo: 'Ver Demo',
     trustedBy: 'Confiado por más de 1,000+ agentes inmobiliarios',
     officialPartner: 'Partner Oficial',
     
@@ -392,7 +396,7 @@ const translations: Record<Language, Translations> = {
     aiProcessing: '2. Procesamiento IA',
     aiProcessingDesc: 'Nuestro sistema extrae y procesa toda la información automáticamente',
     readyContent: '3. Contenido Listo',
-    readyContentDesc: 'Descarga imágenes, videos y textos optimizados para redes sociales',
+    readyContentDesc: 'Descarga imágenes y textos optimizados para redes sociales, material impreso y firmas de correo',
     tryFeatures: 'Probar Características',
     
     // Features
@@ -402,8 +406,10 @@ const translations: Record<Language, Translations> = {
     socialImagesDesc: 'Genera automáticamente imágenes profesionales para Instagram y Facebook con el branding personalizado del agente.',
     optimizedContent: 'Contenido Optimizado',
     optimizedContentDesc: 'Crea textos con hashtags relevantes y llamadas a la acción efectivas para maximizar el engagement.',
-    automaticVideosTitle: 'Videos Automáticos',
-    automaticVideosDesc: 'Produce videos cortos profesionales combinando las fotos de la propiedad con texto persuasivo.',
+    printedMaterialsTitle: 'Material Impreso',
+    printedMaterialsDesc: 'Genera folletos, brochures y fichas de propiedades profesionales listos para imprimir.',
+    emailSignaturesTitle: 'Firmas de Correo',
+    emailSignaturesDesc: 'Crea firmas de correo elegantes y profesionales con información de tus propiedades.',
     controlPanel: 'Panel de Control',
     controlPanelDesc: 'Accede a un historial completo de todas las propiedades procesadas y métricas de rendimiento.',
     secureReliable: 'Seguro y Confiable',

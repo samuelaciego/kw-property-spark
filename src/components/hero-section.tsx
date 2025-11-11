@@ -1,19 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, FileText, Mail, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
-import { VideoLightbox } from "@/components/ui/video-lightbox";
-import { useState } from "react";
 import heroImage from "@/assets/hero-bg.jpg";
+
 export function HeroSection() {
-  const {
-    user
-  } = useAuth();
-  const {
-    t
-  } = useLanguage();
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const { user } = useAuth();
+  const { t } = useLanguage();
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
@@ -58,8 +52,12 @@ export function HeroSection() {
               <span>{t.aiContent}</span>
             </div>
             <div className="flex items-center text-sm sm:text-base text-muted-foreground">
-              <Play className="h-5 w-5 text-warning mr-2 flex-shrink-0" />
-              <span>{t.automaticVideos}</span>
+              <FileText className="h-5 w-5 text-warning mr-2 flex-shrink-0" />
+              <span>{t.printedMaterials}</span>
+            </div>
+            <div className="flex items-center text-sm sm:text-base text-muted-foreground">
+              <Mail className="h-5 w-5 text-success mr-2 flex-shrink-0" />
+              <span>{t.emailSignatures}</span>
             </div>
           </div>
 
@@ -72,10 +70,6 @@ export function HeroSection() {
                 {user ? t.goToDashboard : t.startFreeTrial}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 hover:bg-muted/50 transition-all duration-300 w-full sm:w-auto" onClick={() => setIsVideoOpen(true)}>
-              <Play className="mr-2 h-5 w-5" />
-              {t.seeDemo}
             </Button>
           </div>
 
@@ -94,8 +88,5 @@ export function HeroSection() {
       <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-pulse" style={{
       animationDelay: "1s"
     }}></div>
-      
-      {/* Video Lightbox */}
-      <VideoLightbox isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} videoId="dQw4w9WgXcQ" title="PropGen Demo" />
     </section>;
 }
