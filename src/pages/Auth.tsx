@@ -115,49 +115,49 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md space-y-4 sm:space-y-6">
+        <div className="text-center space-y-2 sm:space-y-3">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors py-2">
             <ArrowLeft className="h-4 w-4" />
             Volver al inicio
           </Link>
           <div className="flex items-center justify-center gap-2">
-            <div className="bg-primary px-3 py-2 rounded-lg">
-              <span className="text-xl font-bold text-primary-foreground">KW</span>
+            <div className="bg-primary px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg">
+              <span className="text-lg sm:text-xl font-bold text-primary-foreground">KW</span>
             </div>
-            <h1 className="text-2xl font-bold">PropGen</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">PropGen</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground px-4">
             Transforma tus listados en contenido viral
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Accede a tu cuenta</CardTitle>
-            <CardDescription className="text-center">
+          <CardHeader className="space-y-1 sm:space-y-2 px-4 sm:px-6 pt-5 sm:pt-6">
+            <CardTitle className="text-center text-lg sm:text-xl">Accede a tu cuenta</CardTitle>
+            <CardDescription className="text-center text-sm sm:text-base">
               Inicia sesión o crea una cuenta nueva
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-5 sm:pb-6">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="signup">Registrarse</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 h-10 sm:h-11">
+                <TabsTrigger value="login" className="text-sm sm:text-base">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="signup" className="text-sm sm:text-base">Registrarse</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="login" className="space-y-4">
+              <TabsContent value="login" className="space-y-4 mt-4">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email" className="text-sm sm:text-base">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="login-email"
                         type="email"
                         placeholder="tu@email.com"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={loginData.email}
                         onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
                         required
@@ -166,14 +166,14 @@ export default function Auth() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Contraseña</Label>
+                    <Label htmlFor="login-password" className="text-sm sm:text-base">Contraseña</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="login-password"
                         type="password"
                         placeholder="••••••••"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={loginData.password}
                         onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                         required
@@ -181,7 +181,7 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base" disabled={isLoading}>
                     {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
                   </Button>
                 </form>
@@ -198,11 +198,11 @@ export default function Auth() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="w-full" 
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base" 
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                 >
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-4 w-4 flex-shrink-0" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -224,17 +224,17 @@ export default function Auth() {
                 </Button>
               </TabsContent>
 
-              <TabsContent value="signup" className="space-y-4">
+              <TabsContent value="signup" className="space-y-4 mt-4">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nombre completo</Label>
+                    <Label htmlFor="signup-name" className="text-sm sm:text-base">Nombre completo</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <User className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-name"
                         type="text"
                         placeholder="Tu nombre completo"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={signupData.fullName}
                         onChange={(e) => setSignupData(prev => ({ ...prev, fullName: e.target.value }))}
                         required
@@ -243,14 +243,14 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-sm sm:text-base">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="tu@email.com"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={signupData.email}
                         onChange={(e) => setSignupData(prev => ({ ...prev, email: e.target.value }))}
                         required
@@ -259,14 +259,14 @@ export default function Auth() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Contraseña</Label>
+                    <Label htmlFor="signup-password" className="text-sm sm:text-base">Contraseña</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-password"
                         type="password"
                         placeholder="••••••••"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={signupData.password}
                         onChange={(e) => setSignupData(prev => ({ ...prev, password: e.target.value }))}
                         required
@@ -276,21 +276,21 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-company">Empresa (opcional)</Label>
+                    <Label htmlFor="signup-company" className="text-sm sm:text-base">Empresa (opcional)</Label>
                     <div className="relative">
-                      <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Building className="absolute left-3 top-3 sm:top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-company"
                         type="text"
                         placeholder="Tu empresa o agencia"
-                        className="pl-10"
+                        className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                         value={signupData.company}
                         onChange={(e) => setSignupData(prev => ({ ...prev, company: e.target.value }))}
                       />
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base" disabled={isLoading}>
                     {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
                   </Button>
                 </form>
@@ -307,11 +307,11 @@ export default function Auth() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  className="w-full" 
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base" 
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                 >
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-4 w-4 flex-shrink-0" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                       fill="#4285F4"
@@ -336,7 +336,7 @@ export default function Auth() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-sm text-muted-foreground">
+        <div className="text-center text-xs sm:text-sm text-muted-foreground px-4">
           Al registrarte, aceptas nuestros términos de servicio y política de privacidad.
         </div>
       </div>
