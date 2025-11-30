@@ -1,6 +1,5 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { LogIn, UserPlus, LayoutDashboard, Zap, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context";
 import { useLanguage } from "@/contexts/language-context";
@@ -8,170 +7,98 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 
 export function Navigation() {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { t } = useLanguage();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-
-  const isLandingPage = location.pathname === '/';
-  const isDashboard = location.pathname === '/dashboard';
+  const isLandingPage = location.pathname === "/";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 md:h-20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-primary px-2 py-1.5 md:px-3 md:py-2 rounded-lg">
-              <span className="text-base md:text-xl font-bold text-primary-foreground">KW</span>
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="bg-primary px-3 py-2 rounded-lg">
+              <span className="text-xl font-bold text-primary-foreground">KW</span>
             </div>
-            <span className="text-lg md:text-xl font-bold text-foreground">PropGen</span>
+            <span className="text-xl font-bold text-foreground">PropGen</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center space-x-8">
             {isLandingPage ? (
               <>
-                <a href="#features" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t.features}
                 </a>
-                <a href="#pricing" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
                   {t.pricing}
+                </a>
+                <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t.about}
                 </a>
               </>
             ) : (
               <>
-                {user && (
-                  <>
-                    <Link to="/dashboard" className={`text-sm font-medium transition-colors ${
-                      isDashboard ? 'text-primary' : 'text-foreground hover:text-primary'
-                    }`}>
-                      Dashboard
-                    </Link>
-                    <Link to="/process" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                      {t.processProperty}
-                    </Link>
-                  </>
-                )}
-              </>
-            )}
-
-            <LanguageSelector />
-
-            {user ? (
-              <>
-                <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden lg:inline">{t.profile}</span>
-                  </Button>
+                 <Link 
+                  to="/dashboard" 
+                  className={`flex items-center space-x-1 transition-colors ${
+                    location.pathname === '/dashboard' 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>{t.dashboard}</span>
                 </Link>
-                <Button onClick={signOut} variant="outline" size="sm">
-                  {t.logout}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">{t.login}</Button>
-                </Link>
-                <Link to="/auth">
-                  <Button size="sm" className="bg-gradient-hero">{t.signUp}</Button>
+                <Link 
+                  to="/process" 
+                  className={`flex items-center space-x-1 transition-colors ${
+                    location.pathname === '/process' 
+                      ? 'text-primary font-medium' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span>{t.processProperty}</span>
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Language Selector and Auth Buttons */}
+          <div className="flex items-center space-x-4">
             <LanguageSelector />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-10 w-10 p-0"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2" asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4" />
+                    {profile?.full_name || user.email?.split('@')[0]}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={signOut} className="flex items-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  {t.logout}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+                  <Link to="/auth">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    {t.login}
+                  </Link>
+                </Button>
+                <Button size="sm" className="bg-gradient-hero hover:shadow-glow transition-all duration-300" asChild>
+                  <Link to="/auth">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    {t.signUp}
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-border py-4 space-y-3">
-            {isLandingPage ? (
-              <>
-                <a 
-                  href="#features" 
-                  className="block px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t.features}
-                </a>
-                <a 
-                  href="#pricing" 
-                  className="block px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {t.pricing}
-                </a>
-              </>
-            ) : (
-              <>
-                {user && (
-                  <>
-                    <Link 
-                      to="/dashboard" 
-                      className={`block px-4 py-3 text-base font-medium rounded-lg transition-colors ${
-                        isDashboard ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'
-                      }`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <Link 
-                      to="/process" 
-                      className="block px-4 py-3 text-base font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {t.processProperty}
-                    </Link>
-                  </>
-                )}
-              </>
-            )}
-
-            {user ? (
-              <div className="space-y-2 px-4">
-                <Link to="/profile" className="w-full" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" size="lg" className="w-full justify-start gap-2">
-                    <User className="h-5 w-5" />
-                    {t.profile}
-                  </Button>
-                </Link>
-                <Button 
-                  onClick={() => {
-                    signOut();
-                    setIsMenuOpen(false);
-                  }} 
-                  variant="outline" 
-                  size="lg"
-                  className="w-full"
-                >
-                  {t.logout}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2 px-4">
-                <Link to="/auth" className="w-full" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="ghost" size="lg" className="w-full">{t.login}</Button>
-                </Link>
-                <Link to="/auth" className="w-full" onClick={() => setIsMenuOpen(false)}>
-                  <Button size="lg" className="w-full bg-gradient-hero">{t.signUp}</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </nav>
   );
